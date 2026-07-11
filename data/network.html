@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH</title>
+  <link rel="stylesheet" href="substyle.css" />
+  <link rel="stylesheet" href="mainstyle.css" />
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="navbar-brand">
+      <a href="index.html" class="navbar-logo-link">
+        <span class="navbar-text">ARTTECH</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="blockhead">
+      <div class="blockname">
+        <p class="namehead">NETWORK SETTING</p>
+      </div>
+    </div>
+
+    <div class="blockcontent">
+      <!-- //ToggleSetting////////////////////////////////////////////////////////////////////////////////////// -->
+      <div class="toggle-row">
+        <span class="toggle">WIFI MODE
+          <span id="wifi-mode" class="toggle-batt"></span>
+        </span>
+
+        <label class="switch">
+          <input id="wifiModeToggle" type="checkbox" onchange="wifiMode(this); toggleSetting(this, 'wifi mode')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle">IP Config
+          <span id="ipConfig" class="toggle-batt"></span>
+        </span>
+
+        <label class="switch">
+          <input id="ipConfigToggle" type="checkbox" onchange="IPconfig(this)" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!--.//input field///////////////////////////////////////////////////////////////////////////////////// -->
+
+      <div class="card-main">
+        <div class="para-name"><span>WIFI SSID</span></div>
+        <form class="setting-input" data-setting="wifi_ssid">
+          <div class="form-row">
+            <input class="text-input" type="text" id="wifi_ssid" name="wifi_ssid" placeholder="WIFI" required />
+            <!-- <select id="ssidSelect" >
+              <option value="" disabled selected class="dropdown-placeholder">
+                Please select the device list
+              </option>
+            </select>
+            <button class="button-set" id="scanBtn">Scan</button> -->
+          </div>
+        </form>
+
+        <div class="para-name"><span>WIFI pass</span></div>
+        <form class="setting-input" data-setting="wifi_pass">
+          <div class="form-row">
+            <input id="wifi_pass" type="password" aria-describedby="toggleHint" placeholder="Password" />
+            <button id="wifi_toggle" class="icon-btn" type="button" data-target="wifi_pass" aria-pressed="false"
+              aria-label="แสดงรหัสผ่าน">
+              <!-- ไอคอนตาแบบง่าย (SVG) -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </div>
+        </form>
+        <!--////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+        <div class="block-ipstatic" id="ip-hide">
+          <div class="para-name"><span>IP Address</span></div>
+          <form class="setting-input" data-setting="ip_address">
+            <div class="form-row">
+              <input class="text-input" type="text" id="ip_address" name="ip_address" placeholder="192.168.1.9"
+                required />
+            </div>
+          </form>
+
+          <div class="para-name"><span>Subnet Mask</span></div>
+          <form class="setting-input" data-setting="subnet_mask">
+            <div class="form-row">
+              <input class="text-input" type="text" id="subnet_mask" name="subnet_mask" placeholder="255.255.255.0"
+                required />
+            </div>
+          </form>
+
+          <div class="para-name"><span>Gateway</span></div>
+          <form class="setting-input" data-setting="default_gateway">
+            <div class="form-row">
+              <input class="text-input" type="text" id="default_gateway" name="default_gateway" placeholder="192.168.1.1" required />
+            </div>
+          </form>
+        </div>
+
+        <!--////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+        <div class="para-name"><span>MQTT User</span></div>
+        <form class="setting-input" data-setting="mqtt_server">
+          <div class="form-row">
+            <input class="text-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="MQTT User" required />
+          </div>
+        </form>
+
+        <div class="para-name"><span>MQTT pass</span></div>
+        <form class="setting-input" data-setting="mqtt_pass">
+          <div class="form-row">
+            <input id="mqtt_pass" type="password" aria-describedby="toggleHint" placeholder="Password" />
+            <button id="mqtt-toggle" class="icon-btn" type="button" data-target="mqtt_pass" aria-pressed="false"
+              aria-label="แสดงรหัสผ่าน">
+              <!-- ไอคอนตาแบบง่าย (SVG) -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <div class="para-name"><span>MQTT Server</span></div>
+        <form class="setting-input" data-setting="mqtt_server">
+          <div class="form-row">
+            <input class="text-input" type="text" id="mqtt_server" name="mqtt_server" placeholder="192.168.1.247"
+              required />
+          </div>
+        </form>
+
+        <div class="para-name"><span>MQTT Port</span></div>
+        <form class="setting-input" data-setting="mqtt_port">
+          <div class="form-row">
+            <input class="text-input" type="text" id="mqtt_port" name="mqtt_port" placeholder="1883" required />
+          </div>
+        </form>
+      </div>
+
+      <div class="card-middle">
+        <button class="button-save" onclick="sendConfig()">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="network.js"></script>
+</body>
+
+</html>

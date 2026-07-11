@@ -1,0 +1,16 @@
+{
+    "AC Input Range": "UPS",
+    "Output Source Priority": "Solar",
+    "Output Voltage": "230VAC",
+    "Grid Tie Operation": "ON",
+    "Beeps While Primary Suorce Interrupt": "ON",
+    "LCD Blacklight": "ON",
+    "Return To The Main LCD Page": "OFF",
+    "Power Saving Mode": "OFF",
+    "Over Temp Auto Restart": "ON",
+    "Led Pattern light": "ON",
+    "Buzzer": "OFF",
+    "dual Output": "OFF",
+    "Overload Auto Restart": "ON",
+    "TransferToBypassOverload": "ON"
+}

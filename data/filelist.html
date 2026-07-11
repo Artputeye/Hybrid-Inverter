@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="mainstyle.css">
+  <link rel="stylesheet" href="substyle.css">
+  <title>LittleFS File Manager</title>
+  <style>
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    .dir {
+      font-weight: bold;
+      color: #2a5;
+    }
+
+    .file {
+      color: #444;
+    }
+
+    button {
+      padding: 6px 12px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
+
+  <div class="main-container">
+    <div class="blockhead">
+      <div class="blockname">
+        <p class="namehead">File Manager</p>
+      </div>
+    </div>
+    <div class="blockcontent">
+      <table id="fileTable">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Files will be populated here -->
+        </tbody>
+      </table>
+    </div>
+    <div class="blockdummy"></div>  
+  </div>
+<!-- 
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+ -->
+  <script>
+    function loadFileList() {
+      fetch("/list?dir=/")
+        .then(res => res.json())
+        .then(files => {
+          const tableBody = document.querySelector("#fileTable tbody");
+          tableBody.innerHTML = ""; // Clear old rows
+
+          files.forEach(file => {
+            const row = document.createElement("tr");
+
+            const typeCell = document.createElement("td");
+            typeCell.textContent = file.type;
+            typeCell.className = file.type;
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = file.name;
+
+            const actionCell = document.createElement("td");
+
+            if (file.type === "file") {
+              const deleteBtn = document.createElement("button");
+              deleteBtn.textContent = "Delete";
+              deleteBtn.onclick = () => deleteFile("/" + file.name);
+              actionCell.appendChild(deleteBtn);
+            } else {
+              actionCell.textContent = "-"; // no delete for directories
+            }
+
+            row.appendChild(typeCell);
+            row.appendChild(nameCell);
+            row.appendChild(actionCell);
+
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error("Error loading file list:", error);
+          alert("Failed to load file list.");
+        });
+    }
+
+    function deleteFile(path) {
+      if (!confirm("Delete " + path + "?")) return;
+
+      fetch("/delete?file=" + encodeURIComponent(path))
+        .then(res => {
+          if (res.ok) {
+            alert("Deleted: " + path);
+            loadFileList(); // Reload the list after deletion
+          } else {
+            return res.text().then(text => {
+              throw new Error(text || "Delete failed");
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Delete error:", error);
+          alert("Delete failed: " + error.message);
+        });
+    }
+
+    // Load files on page load
+    loadFileList();
+  </script>
+
+</body>
+</html>

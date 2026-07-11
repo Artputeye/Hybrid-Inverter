@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH</title>
+  <link rel="stylesheet" href="substyle.css" />
+  <link rel="stylesheet" href="mainstyle.css" />
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="navbar-brand">
+      <a href="index.html" class="navbar-logo-link">
+        <span class="navbar-text">ARTTECH</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="blockhead">
+      <div class="blockname">
+        <p class="namehead">INVERTER SETTING</p>
+      </div>
+    </div>
+
+    <div class="blockcontent">
+      <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="card-main">
+        <div class="card-name"><span>AC Input Range</span></div>
+        <form class="setting-dropdown" data-setting="ACInputRange">
+          <div class="form-row">
+            <select name="plain" id="ACInputRange">
+              <option value="0">Appliance</option>
+              <option value="1">UPS</option>
+            </select>
+            <button class="button-set" type="button" onclick="sendSetting(this)">
+              Set
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-main">
+        <div class="card-name"><span>Output Source Priority</span></div>
+        <form class="setting-dropdown" data-setting="OutputSourcePriority">
+          <div class="form-row">
+            <select name="plain" id="OutputSourcePriority">
+              <option value="0">Utility</option>
+              <option value="1">Solar</option>
+              <option value="2">SBU</option>
+            </select>
+            <button class="button-set" type="button" onclick="sendSetting(this)">
+              Set
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-main">
+        <div class="card-name"><span>Output Voltage</span></div>
+        <form class="setting-dropdown" data-setting="OutputVoltage">
+          <div class="form-row">
+            <select name="plain" id="OutputVoltage">
+              <option value="220">220VAC</option>
+              <option value="230">230VAC</option>
+              <option value="240">240VAC</option>
+            </select>
+            <button class="button-set" type="button" onclick="sendSetting(this)">
+              Set
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-main">
+        <div class="card-name"><span>Grid Tie Current</span></div>
+        <form class="setting-dropdown" data-setting="GridTieCurrent">
+          <div class="form-row">
+            <select name="plain" id="GridTieCurrent">
+              <option value="1">2A</option>
+              <option value="2">4A</option>
+              <option value="3">6A</option>
+              <option value="4">8A</option>
+              <option value="5">10A</option>
+              <option value="6">12A</option>
+              <option value="7">14A</option>
+              <option value="8">16A</option>
+              <option value="9">18A</option>
+              <option value="10">20A</option>
+              <option value="11">22A</option>
+              <option value="12">24A</option>
+              <option value="13">26A</option>
+              <option value="14">28A</option>
+              <option value="15">30A</option>
+            </select>
+            <button class="button-set" type="button" onclick="sendSetting(this)">
+              Set
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!--.//grid cutt ott////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="card-horizontal">
+        <div class="grid-input">
+          <div class="card-vertical">
+            <span class="cutoff-name">Grid Cutoff</span>
+            <input class="grid-control" type="number" id="gridCutOff" min="1" max="31" required />
+          </div>
+
+          <div class="card-vertical">
+            <span class="cutoff-name">Grid Start</span>
+            <input class="grid-control" type="number" id="gridStart" min="1" max="31" required />
+          </div>
+        </div>
+
+        <button class="button-set" type="button" onclick="GridCutToServer()">Set</button>
+      </div>
+
+      <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="toggle-row">
+        <span class="toggle-text">Grid Tie Auto</span>
+        <label class="switch">
+          <input type="checkbox" id="Grid Tie Auto" onchange="toggleSetting(this,'Grid Tie Auto')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Grid Tie Operation</span>
+        <label class="switch">
+          <input type="checkbox" id="Grid Tie Operation" onchange="toggleSetting(this,'GridTieOperation')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Beeps While Primary Source Interrupt</span>
+        <label class="switch">
+          <input type="checkbox" id="Beeps While Primary Source Interrupt"
+            onchange="toggleSetting(this,'BeepsWhilePrimarySuorceInterrupt')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">LCD Backlight</span>
+        <label class="switch">
+          <input type="checkbox" id="LCD Backlight" onchange="toggleSetting(this,'LCDBlacklight')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Return To The Main LCD Page</span>
+        <label class="switch">
+          <input type="checkbox" id="Return To The Main LCD Page"
+            onchange="toggleSetting(this,'ReturnToTheMainLCDPage')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Power Saving Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="Power Saving Mode" onchange="toggleSetting(this,'PowerSavingMode')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Over Temp Auto Restart</span>
+        <label class="switch">
+          <input type="checkbox" id="Over Temp Auto Restart" onchange="toggleSetting(this,'OverloadAutoRestart')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Led Pattern Light</span>
+        <label class="switch">
+          <input type="checkbox" id="Led Pattern Light" onchange="toggleSetting(this,'LedPatternLight')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Buzzer</span>
+        <label class="switch">
+          <input type="checkbox" id="Buzzer" onchange="toggleSetting(this,'Buzzer')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Dual Output</span>
+        <label class="switch">
+          <input type="checkbox" id="Dual Output" onchange="toggleSetting(this,'DualOutput')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Overload Auto Restart</span>
+        <label class="switch">
+          <input type="checkbox" id="Overload Auto Restart" onchange="toggleSetting(this,'OverloadAutoRestart')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Transfer To Bypass Overload</span>
+        <label class="switch">
+          <input type="checkbox" id="Transfer To Bypass Overload"
+            onchange="toggleSetting(this,'TransferToBypassOverload')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-text">Record Fault Code</span>
+        <label class="switch">
+          <input type="checkbox" id="Record Fault Code" onchange="toggleSetting(this,'RecordFaultCode')" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="card-middle">
+        <button class="button-save" onclick="restoreDefaults()">
+          Restore Defaults
+        </button>
+      </div>
+    </div>
+    <div class="blockdummy"></div>
+  </div>
+  <!-- 
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+ -->
+  <script src="set.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+pio run -t uploadfs
+pio run --target buildfs
+pio run --target upload 
+pio run --target erase
+
+
+
+

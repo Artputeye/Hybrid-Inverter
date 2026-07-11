@@ -1,0 +1,10 @@
+{
+  "battypeToggle": "24V",
+  "maximumChargingCurrent": "charging_50",
+  "batteryType": "battype_agm",
+  "voltageBackToUtility": "voltage_utility5",
+  "voltageBackToBattery": "voltage_batt7",
+  "bulkChargingVoltage": 28.5,
+  "floatingChargingVoltage": 27.0,
+  "lowDCCutoff": 22.5
+}

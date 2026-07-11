@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH</title>
+  <link rel="stylesheet" href="substyle.css" />
+  <link rel="stylesheet" href="mainstyle.css" />
+</head>
+
+<header class="navbar">
+  <div class="navbar-brand">
+    <a href="index.html" class="navbar-logo-link">
+      <span class="navbar-text">ARTTECH</span>
+    </a>
+  </div>
+</header>
+
+<div class="main-container">
+  <div class="blockhead">
+    <div class="blockname">
+      <p class="namehead">BATTERY SETTING</p>
+    </div>
+  </div>
+
+  <div class="blockcontent">
+    <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <div class="toggle-row">
+      <span class="toggle-batt">Battery Voltage
+        <span id="battType" class="toggle-batt">24V</span>
+      </span>
+      <label class="switch">
+        <input id="battypeToggle" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+<div class="toggle-row">
+  <span class="toggle-text">Battery Equalization</span>
+  <label class="switch">
+    <input type="checkbox" id="BatteryEqualization" data-setting="BatteryEqualization" />
+    <span class="slider"></span>
+  </label>
+</div>
+
+<div class="toggle-row">
+  <span class="toggle-text">Activated Immediately</span>
+  <label class="switch">
+    <input type="checkbox" id="ActivatedImmediately" data-setting="ActivatedImmediately" />
+    <span class="slider"></span>
+  </label>
+</div>
+
+    <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <div class="card-main">
+      <div class="card-name"><span>Charger Source Priority</span></div>
+      <form class="setting-dropdown" data-setting="ChargerSourcePriority">
+        <div class="form-row">
+          <select name="plain" id="ChargerSourcePriority">
+            <option value="0">Solar Priority</option>
+            <option value="1">Solar and Main</option>
+            <option value="2">Solar Only</option>
+          </select>
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name"><span>Maximum Charging Current</span></div>
+      <form class="setting-dropdown" data-setting="ACInputRange">
+        <div class="form-row">
+          <select name="plain" id="ACInputRange">
+            <option value="10">10A</option>
+            <option value="20">20A</option>
+            <option value="30">30A</option>
+            <option value="40">40A</option>
+            <option value="50">50A</option>
+            <option value="60">60A</option>
+            <option value="70">70A</option>
+            <option value="80">80A</option>
+            <option value="90">90A</option>
+            <option value="100">100A</option>
+            <option value="110">110A</option>
+            <option value="120">120A</option>
+          </select>
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name"><span>Battery Type</span></div>
+      <form class="setting-dropdown" data-setting="BatteryType">
+        <div class="form-row">
+          <select name="plain" id="BatteryType">
+            <option value="0">AGM</option>
+            <option value="1">Flooded</option>
+            <option value="2">User Defined</option>
+            <option value="3">Lithium</option>
+          </select>
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Voltage Point Back to Utility</span>
+      </div>
+      <form class="setting-dropdown" data-setting="VoltagePointBacktoUtility">
+        <div class="form-row">
+          <select name="plain" id="VoltagePointBacktoUtility">
+            <option value="210">21.0</option>
+            <option value="215">21.5</option>
+            <option value="220">22.0</option>
+            <option value="225">22.5</option>
+            <option value="230">23.0</option>
+            <option value="235">23.5</option>
+            <option value="240">24.0</option>
+            <option value="245">24.5</option>
+            <option value="250">25.0</option>
+            <option value="255">25.5</option>
+          </select>
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Voltage Point Back to Battery</span>
+      </div>
+      <form class="setting-dropdown" data-setting="VoltagePointBacktoBattery">
+        <div class="form-row">
+          <select name="plain" id="VoltagePointBacktoBattery">
+            <option value="240">24.0</option>
+            <option value="245">24.5</option>
+            <option value="250">25.0</option>
+            <option value="255">25.5</option>
+            <option value="260">26.0</option>
+            <option value="265">26.5</option>
+            <option value="270">27.0</option>
+            <option value="275">27.5</option>
+            <option value="280">28.0</option>
+            <option value="285">28.5</option>
+            <option value="290">29.0</option>
+          </select>
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <!--.//input field////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Bulk Charging Voltage
+          <span id="BulkCharging_Voltage">25.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="BulkChargingVoltage" step="0.1" required />
+        <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="BulkChargingVoltage_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Floating Charging Voltage
+          <span id="FloatingCharging_Voltage">25.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="FloatingChargingVoltage" step="0.1" required />
+        <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="FloatingChargingVoltage_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Low Battery Cutoff
+          <span id="LowBatteryCutoff_Voltage">20.0 - 24.0V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="LowBatteryCutoffVoltage" step="0.1" required />
+        <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="LowBatteryCutoffVoltage_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Battery Equalization Voltage
+          <span id="BatteryEqualization_Voltage">25.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="BatteryEqualizationVoltage" step="0.1" required />
+        <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="BatteryEqualizationVoltage_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Battery Equalization Time
+          <span id="BatteryEqualization_Time">5 - 900 min</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="BatteryEqualizationTime" name="equalization" step="0.1" required />
+        <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="BatteryEqualizationTime_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Battery Equalization Timeout
+          <span id="BatteryEqualization_Timeout">5 - 900 min</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="BatteryEqualizationTimeout" name="equalization" step="0.1"
+          required />
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="BatteryEqualizationTimeout_error" class="error-container"></div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Battery Equalization Interval
+          <span id="BatteryEqualization_Interval">1 - 90 day</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="BatteryEqualizationInterval" name="equalization" step="0.1"
+          required />
+          <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+      </div>
+      <div id="BatteryEqualizationInterval_error" class="error-container"></div>
+    </div>
+
+
+    <!-- <button class="button-save" type="button" onclick="collectAndSendSettings()">SAVE</button> -->
+
+  </div>
+
+  <div class="blockdummy"></div>
+
+</div>
+<!-- 
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+ -->
+<script src="batt.js"></script>
+</body>
+
+</html>
