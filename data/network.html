@@ -19,15 +19,17 @@
     </div>
   </header>
 
-  <div class="main-container">
+<div class="main-container">
     <div class="blockhead">
       <div class="blockname">
         <p class="namehead">NETWORK SETTING</p>
+       
       </div>
     </div>
 
     <div class="blockcontent">
       <!-- //ToggleSetting////////////////////////////////////////////////////////////////////////////////////// -->
+
       <div class="toggle-row">
         <span class="toggle">WIFI MODE
           <span id="wifi-mode" class="toggle-batt"></span>
@@ -146,12 +148,15 @@
         </form>
       </div>
 
+       <p class="ip-display">IP Address : <span id="esp32-ip"></span></p>
+
       <div class="card-middle">
         <button class="button-save" onclick="sendConfig()">SAVE</button>
       </div>
     </div>
   </div>
 
+  <script src="info.js"></script>
   <script src="network.js"></script>
 </body>
 

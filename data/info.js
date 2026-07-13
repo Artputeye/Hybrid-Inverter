@@ -37,6 +37,10 @@ function initWebSocket() {
 
             console.log("Decoded JSON:", obj);
 
+            if (obj["DIVICE_IP"]) {
+                document.getElementById("esp32-ip").textContent = obj["DIVICE_IP"];
+                console.log(`DIVICE_IP : ${obj["DIVICE_IP"]}`);
+            }
             if (obj["Serial"]) {
                 console.log(`Serial : ${obj["Serial"]}`);
                 appendToTerminal(`${ts} Serial : ${obj["Serial"]}`);

@@ -140,7 +140,6 @@ void readNetworkConfig()
     isWifiApMode = atoi(doc["wifi_mode"] | "0");
     isIpConfigStatic = atoi(doc["ip_config"] | "0");
 
-    
     strlcpy(WIFI_SSID, doc["wifi_ssid"] | "NONE", sizeof(WIFI_SSID));
     strlcpy(WIFI_PASS, doc["wifi_pass"] | "", sizeof(WIFI_PASS));
     strlcpy(MAC_RECEIVE, doc["mac_receive"] | "", sizeof(MAC_RECEIVE));
@@ -246,6 +245,7 @@ void WiFiEvent(WiFiEvent_t event)
     {
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
         Serial.printf("✅ Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+        snprintf(DIVICE_IP, sizeof(DIVICE_IP), "%s", WiFi.localIP().toString().c_str());
         ledMode = LED_CONNECTED;
 
         // NTP Sync
@@ -269,16 +269,16 @@ void WiFiEvent(WiFiEvent_t event)
     }
 }
 
-void keepWiFiAlive() 
+void keepWiFiAlive()
 {
     // ทำงานเฉพาะตอนที่ตั้งค่าเป็น STA Mode เท่านั้น
-    if (isWifiApMode == 1) 
+    if (isWifiApMode == 1)
     {
         static unsigned long lastReconnectCheck = 0;
         // ตรวจสอบทุกๆ 20 วินาที เพื่อไม่ให้รบกวนการทำงานอื่นมากเกินไป
-        if (millis() - lastReconnectCheck > 20000) 
+        if (millis() - lastReconnectCheck > 20000)
         {
-            if (WiFi.status() != WL_CONNECTED) 
+            if (WiFi.status() != WL_CONNECTED)
             {
                 Serial.println(F("🔄 KeepAlive: WiFi disconnected. Reconnecting..."));
                 WiFi.disconnect();

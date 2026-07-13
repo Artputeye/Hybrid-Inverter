@@ -38,8 +38,11 @@ void setup()
         Serial.println(F("✅ LittleFS Mounted"));
     }
 
+    displayLogs();            // 1. ดึง Log เก่าที่เคยค้างไว้ขึ้นมาโชว์ตอนเปิดเครื่อง
+    checkAndLogResetReason(); // 2. เช็คว่าเปิดเครื่องรอบนี้ เพราะรอบก่อนหน้านี้ค้างจนโดน WDT สั่งรีเซ็ตไหม
+
     // 3. Network & Config Setup
-    
+
     WiFi.onEvent(WiFiEvent);
     wifi_Setup();
 
@@ -127,7 +130,7 @@ void TaskSub(void *pvParameters)
         iotHArun();
         ws_process();
         APmode_Check();
-        keepWiFiAlive() ;
+        keepWiFiAlive();
 
         // ตรวจสอบสถานะทุก 10 วินาที
         if (millis() - lastStatus > 10000)

@@ -267,7 +267,7 @@ void savebatSetting() // API: รับ JSON จาก Client แล้วบั
 ////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// NETWORK SETTING LOAD /////////////////////////////////
 
-void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
+void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่ง networkconfig.json ไปยัง Client
 {
   server.on("/getnetworkconfig", HTTP_GET, [](AsyncWebServerRequest *request)
             {

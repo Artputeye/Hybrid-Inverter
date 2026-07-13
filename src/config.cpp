@@ -19,6 +19,7 @@ char WIFI_PASS[25] = "";
 char HOSTNAME[30] = "inverter";
 
 // --- Static IP Settings ---
+char DIVICE_IP[16];
 char IP_ADDR[16] = "0.0.0.0";
 char SUBNET_MASK[16] = "255.255.255.0";
 char GATEWAY[16] = "0.0.0.0";

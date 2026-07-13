@@ -51,17 +51,19 @@
 
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  justify-items: center;
+  /* 1. เปลี่ยนจาก 1fr เป็น auto และใช้ justify-content: center เพื่อดึงไอคอนมารวมตรงกลาง */
+  grid-template-columns: repeat(3, auto);
+  gap: 8px; /* 2. ลดระยะห่าง (Gap) ระหว่างไอคอนลงตามใจชอบ (เดิม 15px) */
+  justify-content: center; 
   align-items: center;
   padding: 10px 0;
 }
 
 @media (max-width: 400px) {
   .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    /* ปรับสำหรับหน้าจอขนาดเล็กพิเศษ */
+    grid-template-columns: repeat(2, auto);
+    gap: 8px; /* ระยะห่างตอนสองแถว */
   }
 }
 

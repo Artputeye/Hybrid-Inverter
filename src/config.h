@@ -15,7 +15,8 @@
 #include <time.h>
 #include <esp_now.h>
 #include "inv_command.h"
-#include "driver/rmt.h"
+//#include "driver/rmt.h"
+#include "rom/rtc.h" 
 
 // --- System Definitions ---
 #define WDT_TIMEOUT 120
@@ -46,6 +47,7 @@ extern char WIFI_PASS[25];
 extern char HOSTNAME[30];
 
 // --- Static IP Settings ---
+extern char DIVICE_IP[16];
 extern char IP_ADDR[16];
 extern char SUBNET_MASK[16];
 extern char GATEWAY[16];
@@ -78,6 +80,7 @@ extern String lastSerialMsg;
 #include "ha_integration.h"
 #include "http_server.h"
 #include "inv_control.h"
+#include "logger.h"
 #include "network_manager.h"
 #include "ota_update.h"
 #include "serial_handler.h"

@@ -16,6 +16,9 @@ String wsAllDataBase64()
     doc["Serial"] = wsSerial;
     doc["Inverter"] = wsInverter;
 
+    ///////////////////////DIVICE_IP////////////////////////////
+    doc["DIVICE_IP"] = DIVICE_IP;
+
     ///////////////////////Monotor////////////////////////////////
     doc["Load Percent"] = inv.data.loadPercent;
     doc["Energy Daily"] = String(energy_kWh, 3);
