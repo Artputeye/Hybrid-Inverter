@@ -27,8 +27,8 @@ void setup()
         ;
 
     Serial.println(F("\n[System] Booting..."));
-
     // 2. Storage Setup
+    delay(500);
     if (!LittleFS.begin(true))
     {
         Serial.println(F("❌ LittleFS Mount Failed"));
@@ -38,13 +38,16 @@ void setup()
         Serial.println(F("✅ LittleFS Mounted"));
     }
 
+    delay(500);
     displayLogs();            // 1. ดึง Log เก่าที่เคยค้างไว้ขึ้นมาโชว์ตอนเปิดเครื่อง
     checkAndLogResetReason(); // 2. เช็คว่าเปิดเครื่องรอบนี้ เพราะรอบก่อนหน้านี้ค้างจนโดน WDT สั่งรีเซ็ตไหม
 
     // 3. Network & Config Setup
 
     WiFi.onEvent(WiFiEvent);
+    delay(500);
     wifi_Setup();
+    delay(500);
 
     // 4. Services Setup for connect the internet
     if (isWifiApMode == 1 && WiFi.status() == WL_CONNECTED)
@@ -52,20 +55,24 @@ void setup()
         iotHAsetup();
         NTPbegin();
     }
+    delay(500);
 
     if (MDNS.begin(HOSTNAME))
     {
         Serial.printf("[System] mDNS Started: %s.local\n", HOSTNAME);
     }
-
+    delay(500);
     initWebRoutes();
+    delay(500);
     ws_init();
+    delay(500);
     setupOTAManagement();
-
+    delay(500);
     server.begin();
-
+    delay(500);
     app_setup();
-
+    delay(500);
+    
     // 5. Watchdog Configuration (ESP32-IDF Style)
     // หมายเหตุ: หากใช้ ESP32 Core 3.x ขึ้นไป อาจต้องปรับ syntax ตามที่แจ้งในรอบก่อน
     esp_task_wdt_init(WDT_TIMEOUT, true);

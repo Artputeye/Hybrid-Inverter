@@ -5,13 +5,15 @@ void app_setup()
 {
   loadEnergyFromFile();
   Serial.println("Load Energy From FS");
-  delay(300);
+  delay(500);
+  initEnergyTracker();
+  delay(500);
 }
 
 void app_loop()
 {
-    gridRun();
-    gridOperation();
+  gridRun();
+  gridOperation();
 }
 
 void updateSystemStatus()

@@ -18,7 +18,7 @@ void processSerialCommand(String input)
             String key = payload.substring(0, firstColon);  // "RELAY1"
             String val = payload.substring(firstColon + 1); // "ON"
 
-            //serialRelay(key, val);
+            // serialRelay(key, val);
 
             // Debug ดูค่าที่แยกได้
             Serial.print("Command Key: ");
@@ -29,6 +29,7 @@ void processSerialCommand(String input)
     }
     else if (input.length() > 0)
     {
-        Serial.println(">>> [ERROR] Unknown Command format. Use SET:KEY:VAL");
+        inv.executeCommand(input);
+        Serial.println(">>> [INV] Command format to inverter.");
     }
 }

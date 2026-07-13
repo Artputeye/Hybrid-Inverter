@@ -62,7 +62,7 @@ void gridRun()
     if ((millis() - lastRespons) > resInterval) // Respons from Inverter
     {
         lastRespons = millis();
-        inv.serialSent();
+        //inv.serialSent();
         wsJsonSerial(inv.serialData);
         inv.Response();
     }

@@ -135,7 +135,7 @@ public:
       "Battery Too Low To Charge", "reserved30", "reserved31"};
 
   /**************************************** public function ********************************/
-  void serialSent();
+  void executeCommand(String input);
   void Response();
   uint16_t modbusCRC(const uint8_t *buf, uint16_t len);
   size_t buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t value, uint8_t *frame);

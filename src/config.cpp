@@ -7,9 +7,9 @@ File fsUploadFile;
 inv_command inv;
 
 // --- Device Info ---
-char D_SoftwareVersion[15] = "1.2.9";
+char D_SoftwareVersion[15] = "1.3.0";
 char D_Mfac[15] = "ARTTECH";
-char D_Model[15] = "ESP RC";
+char D_Model[17] = "INVERTER CONTROL";
 
 // --- Network Settings ---
 char DEVICE_NAME[28] = "Hybride Inverter";

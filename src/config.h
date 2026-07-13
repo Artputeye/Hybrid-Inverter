@@ -37,7 +37,7 @@ extern File fsUploadFile;
 // --- Device Info ---
 extern char D_SoftwareVersion[15];
 extern char D_Mfac[15];
-extern char D_Model[15];
+extern char D_Model[17];
 
 // --- Network Settings ---
 extern char DEVICE_NAME[28];
@@ -77,6 +77,7 @@ extern String lastSerialMsg;
 
 // --- Project Sub-Programs (Include หลังการประกาศ extern เสมอ) ---
 #include "app_main.h"
+#include "energy_tracker.h"
 #include "ha_integration.h"
 #include "http_server.h"
 #include "inv_control.h"

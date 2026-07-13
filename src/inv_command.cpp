@@ -2,18 +2,22 @@
 // ************************  inv_command class  ************************
 // public:
 
-void inv_command::serialSent()
+void inv_command::executeCommand(String input)
 {
-  while (Serial.available() > 0)
-  {
-    serialData = Serial.readStringUntil('\n');
-    Serial.print("Serial Sent : ");
-    Serial.println(serialData);
-    cmd_inv(serialData);
-    len = serialData.length();
-    Serial.println("len1: " + String(len));
-    vTaskDelay(pdMS_TO_TICKS(10));
-  }
+  // ตัดช่องว่างหรืออักขระแปลกปลอม (เช่น \r หรือ \n ที่อาจจะติดมา)
+  input.trim(); 
+  
+  if (input.length() == 0) return; // ถ้าส่งค่าว่างมา ไม่ต้องทำอะไรต่อ
+
+  Serial.print("Executing Command : ");
+  Serial.println(input);
+  
+  // ส่งไปประมวลผลต่อที่ฟังก์ชันของ Inverter เดิม
+  cmd_inv(input);
+  
+  // พิมพ์ดูความยาวคำสั่ง (เหมือนโค้ดเดิมของคุณ)
+  len = input.length();
+  Serial.println("len1: " + String(len));
 }
 
 void inv_command::Response()
