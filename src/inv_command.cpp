@@ -5,16 +5,17 @@
 void inv_command::executeCommand(String input)
 {
   // ตัดช่องว่างหรืออักขระแปลกปลอม (เช่น \r หรือ \n ที่อาจจะติดมา)
-  input.trim(); 
-  
-  if (input.length() == 0) return; // ถ้าส่งค่าว่างมา ไม่ต้องทำอะไรต่อ
+  input.trim();
+
+  if (input.length() == 0)
+    return; // ถ้าส่งค่าว่างมา ไม่ต้องทำอะไรต่อ
 
   Serial.print("Executing Command : ");
   Serial.println(input);
-  
+
   // ส่งไปประมวลผลต่อที่ฟังก์ชันของ Inverter เดิม
   cmd_inv(input);
-  
+
   // พิมพ์ดูความยาวคำสั่ง (เหมือนโค้ดเดิมของคุณ)
   len = input.length();
   Serial.println("len1: " + String(len));
@@ -22,36 +23,38 @@ void inv_command::executeCommand(String input)
 
 void inv_command::Response()
 {
-  unsigned long startTime = millis();
-  const unsigned long timeout = 500; // อยู่ใน loop ไม่เกิน 500ms
 
-  while (Serial2.available() > 0 && millis() - startTime < timeout)
-  {
-    invData = Serial2.readStringUntil('\n');
-    Serial.println("Inverter respond");
-    Serial.println(invData);
-    len = invData.length();
-    Serial.println("len: " + String(len));
+    unsigned long startTime = millis();
+    const unsigned long timeout = 500; // อยู่ใน loop ไม่เกิน 500ms
 
-    if (len == 110)
+    while (Serial2.available() > 0 && millis() - startTime < timeout)
     {
-      parseQPIGS(invData);
-      lastResponseTime = millis();
-    }
-    if (len == 112)
-    {
-      parseQPIRI(invData);
-      lastResponseTime = millis();
-    }
-    if (len == 36)
-    {
-      parseQPIWS(invData);
-      lastResponseTime = millis();
-    }
+      invData = Serial2.readStringUntil('\n');
+      Serial.println("Inverter respond");
+      Serial.println(invData);
+      len = invData.length();
+      Serial.println("len: " + String(len));
 
-    vTaskDelay(10);
+      if (len == 110)
+      {
+        parseQPIGS(invData);
+        lastResponseTime = millis();
+      }
+      if (len == 112)
+      {
+        parseQPIRI(invData);
+        lastResponseTime = millis();
+      }
+      if (len == 36)
+      {
+        parseQPIWS(invData);
+        lastResponseTime = millis();
+      }
+
+      vTaskDelay(10);
+    }
   }
-}
+
 
 uint16_t inv_command::modbusCRC(const uint8_t *buf, uint16_t len)
 {
@@ -132,6 +135,8 @@ void inv_command::valueToinv(String Name, uint16_t val)
 
 void inv_command::cmd_inv(String data)
 {
+  // erial.println("Sent in function cmd_inv");
+
   // inquiry command to inverter
   // it will be calculated and added before send) // crc "\xB7\xA9" // CR "\x0D"
   byte QPIGS[] = {0x51, 0x50, 0x49, 0x47, 0x53, 0xB7, 0xA9, 0x0D}; // len = 110 Device general status parameters inquiry (230.8 49.9 230.8 49.9 0830 0617 019 360 08.6  0 0 000 0032 00.0042.  00.00 00000 00010000 00 00 000 1 010�
@@ -343,9 +348,9 @@ void inv_command::parseQPIGS(String response)
   if (response.startsWith("("))
   {
     response = response.substring(1, response.length() - 1); // Remove parentheses
-    char dataArray[120]; // Fixed-size buffer (QPIGS max ~108 chars after trim)
-    response.toCharArray(dataArray, sizeof(dataArray)); // Convert to C-string
-    char *token = strtok(dataArray, " ");               // Split by space // First token
+    char dataArray[120];                                     // Fixed-size buffer (QPIGS max ~108 chars after trim)
+    response.toCharArray(dataArray, sizeof(dataArray));      // Convert to C-string
+    char *token = strtok(dataArray, " ");                    // Split by space // First token
     int index = 0;
     while (token != NULL)
     {
@@ -435,9 +440,9 @@ void inv_command::parseQPIRI(String response)
   if (response.startsWith("("))
   {
     response = response.substring(1, response.length() - 1); // Remove parentheses
-    char dataArray[120]; // Fixed-size buffer (QPIRI max ~110 chars after trim)
-    response.toCharArray(dataArray, sizeof(dataArray)); // Convert to C-string
-    char *token = strtok(dataArray, " ");               // Split by space // First token
+    char dataArray[120];                                     // Fixed-size buffer (QPIRI max ~110 chars after trim)
+    response.toCharArray(dataArray, sizeof(dataArray));      // Convert to C-string
+    char *token = strtok(dataArray, " ");                    // Split by space // First token
     int index = 0;
     while (token != NULL)
     {

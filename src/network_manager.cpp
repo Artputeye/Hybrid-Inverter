@@ -27,14 +27,14 @@ void APmode_Check()
         Serial.println(F("⚠️ Long press detected! Switching to AP Mode..."));
         isWifiApMode = 0;      // Set to AP
         saveWifiModeSetting(); // สมมติว่ามี function นี้ใน globals
-        delay(1000);
+        vTaskDelay(pdMS_TO_TICKS(1000));
         ESP.restart();
     }
 }
 
 void wifi_Setup()
 {
-    mac_config();
+    WiFi.onEvent(WiFiEvent);
     readNetworkConfig();
 
     if (isWifiApMode == 1)
@@ -195,15 +195,29 @@ void setupWiFiMode()
     { // AP MODE
         Serial.println(F("📡 Starting AP Mode..."));
         ledMode = LED_AP_MODE;
+        WiFi.disconnect(true, true);
+        delay(500);
+        WiFi.mode(WIFI_OFF);
+        delay(500);
         WiFi.mode(WIFI_AP);
+        WiFi.softAP(
+            DEVICE_NAME,
+            "12345678",
+            6,     // channel
+            false, // hidden
+            4      // max client
+        );
 
-        IPAddress local_IP(192, 168, 4, 1);
-        IPAddress subnet(255, 255, 255, 0);
-        WiFi.softAPConfig(local_IP, local_IP, subnet);
-        WiFi.softAP(DEVICE_NAME, DEVICE_PASS);
+        Serial.printf("AP Started = %d\n", WiFi.getMode());
 
-        Serial.print(F("AP IP: "));
+        Serial.print("SSID : ");
+        Serial.println(WiFi.softAPSSID());
+
+        Serial.print("IP : ");
         Serial.println(WiFi.softAPIP());
+
+        Serial.print("Station Num : ");
+        Serial.println(WiFi.softAPgetStationNum());
     }
     else
     { // STA MODE
@@ -212,6 +226,7 @@ void setupWiFiMode()
         WiFi.mode(WIFI_STA);
         WiFi.setSleep(false);
         WiFi.begin(WIFI_SSID, WIFI_PASS);
+        mac_config();
     }
 }
 

@@ -6,7 +6,8 @@ window.addEventListener('load', onload);
 
 function onload(event) {
     initWebSocket();
-    fetchToserver("QPIRI");
+    // fetchToserver("QPIRI");
+     fetchToserver("QPIWS");
 }
 
 function getReadings() {
@@ -25,6 +26,11 @@ function initWebSocket() {
 function onOpen(event) {
     console.log('Connection opened');
     getReadings();
+    fetchToserver("QPIRI");
+
+    setTimeout(() => {
+        fetchToserver("QPIWS");
+    }, 500);
 }
 
 function onClose(event) {
@@ -45,7 +51,7 @@ function onMessage(event) {
 
         // Parse JSON
         const myObj = JSON.parse(jsonText);
-
+        console.log(myObj);
         // อัปเดตค่าเข้า HTML
         Object.keys(myObj).forEach((key) => {
             const el = document.getElementById(key);
@@ -60,14 +66,14 @@ function onMessage(event) {
 }
 
 function updateFaults(faults) {
-  const faultDiv = document.getElementById("inverter fault");
-  if (faults.length === 0) {
-    faultDiv.textContent = "OK";
-    faultDiv.style.color = "green";
-  } else {
-    faultDiv.textContent = faults.join(", ");
-    faultDiv.style.color = "red";
-  }
+    const faultDiv = document.getElementById("inverter fault");
+    if (faults.length === 0) {
+        faultDiv.textContent = "OK";
+        faultDiv.style.color = "green";
+    } else {
+        faultDiv.textContent = faults.join(", ");
+        faultDiv.style.color = "red";
+    }
 }
 
 function fetchToserver(message) {

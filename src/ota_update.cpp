@@ -15,7 +15,7 @@ void handleFirmwareUpload() {
             bool success = !Update.hasError();
             if (success) {
                 request->send(200, "text/plain", "OK");
-                delay(1000);
+                vTaskDelay(pdMS_TO_TICKS(1000));
                 ESP.restart();
             } else {
                 request->send(500, "text/plain", "Update Failed");

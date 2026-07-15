@@ -30,41 +30,52 @@ bool gridState = false;
 
 void gridRun()
 {
-    if ((millis() - lastQvalue) > qvalInterval) // Question to Inverter
+    // 1. ส่วนส่งคำสั่งถามข้อมูล (Inquiry)
+    if ((millis() - lastQvalue) > qvalInterval) // ทุกๆ 5 วินาที
     {
         lastQvalue = millis();
         if (inv.RunMode)
         {
             inv.cmd_inv("QPIGS");
+            //Serial.println("Sent in function gridRun");
+            //wsJsonControll("Sent in function gridRun");
         }
-        inv.Response();
-        wsJsonInverter(inv.invData);
         simulateData();
     }
 
-    if ((millis() - lastQrate) > qrateInterval) // Question Rate to Inverter
-    {
-        lastQrate = millis();
-        if (inv.RunMode)
-        {
-            if (toggle)
-            {
-                inv.cmd_inv("QPIRI"); // ส่งคำสั่งแรก
-            }
-            else
-            {
-                inv.cmd_inv("QPIWS"); // ส่งคำสั่งที่สอง
-            }
-        }
-        toggle = !toggle;
-    }
+    // if ((millis() - lastQrate) > qrateInterval) // ทุกๆ 10 วินาที
+    // {
+    //     lastQrate = millis();
+    //     if (inv.RunMode)
+    //     {
+    //         if (toggle)
+    //         {
+    //             inv.cmd_inv("QPIRI"); 
+    //         }
+    //         else
+    //         {
+    //             inv.cmd_inv("QPIWS"); 
+    //         }
+    //         toggle = !toggle;
+    //     }
+    // }
 
-    if ((millis() - lastRespons) > resInterval) // Respons from Inverter
+    // 2. ส่วนรับข้อมูล (Response Handler) ทำหน้าที่คอยตรวจเช็กทุกๆ 100ms
+    if ((millis() - lastRespons) > resInterval) 
     {
         lastRespons = millis();
-        //inv.serialSent();
-        wsJsonSerial(inv.serialData);
-        inv.Response();
+        
+        // บันทึกค่าความยาวก่อนเรียก Response เพื่อเอาไว้เช็กว่ามีข้อมูลใหม่เข้ามาจริงไหม
+        int oldLen = inv.invData.length(); 
+        
+        inv.Response(); // เรียกตรวจสอบข้อมูลขาเข้า
+        
+        // ถ้าค่า invData เปลี่ยนไป และไม่เป็นค่าว่าง แสดงว่าได้รับข้อมูลชุดใหม่เรียบร้อยแล้ว
+        if (inv.invData.length() > 0 && inv.invData.length() != oldLen)
+        {
+            //wsJsonInverter("Respond from inv.invData: " + inv.invData);
+            //wsJsonSerial(inv.serialData);
+        }
     }
 }
 
@@ -87,7 +98,7 @@ void gridOperation()
         if (!success)
         {
             Serial.println("⚠️ Warning: daily reset failed, retrying...");
-            delay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000)); 
             success = clearEnergyFile();
         }
 
@@ -132,7 +143,7 @@ void gridOperation()
         Serial.printf("tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
                       rtc.day, gridCutOff, gridStart);
 
-        wsJsonInverter(String("tm_mday=") + String(rtc.day) +
+        wsJsonControll(String("tm_mday=") + String(rtc.day) +
                        String(" gridCutOff=") + String(gridCutOff) +
                        String(" gridStart=") + String(gridStart) +
                        String(" tm_hour=") + String(rtc.hour) + String(" tm_min=") + String(rtc.minute));
@@ -143,7 +154,7 @@ void gridOperation()
         {
             inv.valueToinv("GridTieOperation", 0);
             Serial.println("🔴 Grid OFF (within cut-off period)");
-            wsJsonSerial("Grid OFF (within cut-off period)");
+            wsJsonControll("Grid OFF (within cut-off period)");
             Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
             return;
         }
@@ -159,21 +170,21 @@ void gridOperation()
                 inv.valueToinv("GridTieOperation", 0);
                 gridState = false;
                 Serial.println("🔴 Grid OFF (energy < 1.0 kWh)");
-                wsJsonSerial("Grid OFF (energy < 1.0 kWh)");
+                wsJsonControll("Grid OFF (energy < 1.0 kWh)");
             }
             else if (energy_kWh > GRID_ON_THRESHOLD)
             {
                 inv.valueToinv("GridTieOperation", 1);
                 gridState = true;
                 Serial.println("🟢 Grid ON (energy > 2.0 kWh)");
-                wsJsonSerial("Grid ON (energy > 2.0 kWh)");
+                wsJsonControll("Grid ON (energy > 2.0 kWh)");
             }
             else
             {
                 inv.valueToinv("GridTieOperation", gridState ? 1 : 0);
                 Serial.printf("⚙️ Confirming Grid %s (energy = %.3f)\n",
                               gridState ? "ON" : "OFF", energy_kWh);
-                wsJsonSerial(String("⚙️ Confirming Grid ") + (gridState ? "ON" : "OFF") +
+                wsJsonControll(String("⚙️ Confirming Grid ") + (gridState ? "ON" : "OFF") +
                              String(" (energy = ") + String(energy_kWh, 3) + String(" kWh)"));
             }
         }

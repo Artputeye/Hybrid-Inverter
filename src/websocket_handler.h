@@ -11,6 +11,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 void ws_init();
 void wsJsonSerial(const String &msg);
 void wsJsonInverter(const String &msg);
+void wsJsonControll(const String &msg);
 void ws_process();
 
 #endif

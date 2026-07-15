@@ -20,6 +20,8 @@
 
 // --- System Definitions ---
 #define WDT_TIMEOUT 120
+#define RX_pin 16 // pin receive to inverter
+#define TX_pin 17 // pin transmission to inverter
 #define STATUS_LED 2 //Pin 2 for ESP32 Devkit/Pin 23 for ESP32 Relay 4CH
 #define AP_PIN 0
 
@@ -37,7 +39,7 @@ extern File fsUploadFile;
 // --- Device Info ---
 extern char D_SoftwareVersion[15];
 extern char D_Mfac[15];
-extern char D_Model[17];
+extern char D_Model[15];
 
 // --- Network Settings ---
 extern char DEVICE_NAME[28];

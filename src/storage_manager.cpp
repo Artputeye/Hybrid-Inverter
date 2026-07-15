@@ -212,7 +212,7 @@ bool saveEnergyToFile()
     size_t written = serializeJson(doc, file);
     file.flush();
     file.close();
-    delay(50); // รอ Flash เขียนจริง
+    vTaskDelay(pdMS_TO_TICKS(50)); // รอ Flash เขียนจริง
 
     if (written == 0)
     {
@@ -257,7 +257,7 @@ bool clearEnergyFile()
             Serial.println("❌ Failed to remove old energy.json");
             return false;
         }
-        delay(50);
+        vTaskDelay(pdMS_TO_TICKS(50)); ;
     }
 
     energy_kWh = 0.0;
@@ -265,7 +265,7 @@ bool clearEnergyFile()
     if (!saveEnergyToFile())
     {
         Serial.println("⚠️ Warning: Failed to create new cleared file, retrying...");
-        delay(200);
+        vTaskDelay(pdMS_TO_TICKS(200)); 
         if (!saveEnergyToFile())
         {
             Serial.println("❌ Retry failed: energy_kWh reset failed");

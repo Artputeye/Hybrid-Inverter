@@ -7,6 +7,7 @@ unsigned long MonitorDelay = 3000;
 const unsigned long pingInterval = 25000; // 25 วินาที
 String wsSerial;
 String wsInverter;
+String wsControll;
 
 String wsAllDataBase64()
 {
@@ -15,6 +16,7 @@ String wsAllDataBase64()
     ///////////////////////Serial Sent////////////////////////////
     doc["Serial"] = wsSerial;
     doc["Inverter"] = wsInverter;
+    doc["controll"] = wsControll;
 
     ///////////////////////DIVICE_IP////////////////////////////
     doc["DIVICE_IP"] = DIVICE_IP;
@@ -180,7 +182,7 @@ void wsJsonSerial(const String &msg)
         notifyClients(wsAllDataBase64());
         wsSerial = "";
         inv.serialData = "";
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100)); 
     }
 }
 
@@ -191,10 +193,21 @@ void wsJsonInverter(const String &msg)
     {
         notifyClients(wsAllDataBase64());
         wsInverter = "";
-        inv.invData = "";
-        delay(100);
+        vTaskDelay(pdMS_TO_TICKS(100)); 
     }
 }
+
+void wsJsonControll(const String &msg)
+{
+    wsControll = msg;
+    if (!wsControll.isEmpty())
+    {
+        notifyClients(wsAllDataBase64());
+        wsControll = "";
+        vTaskDelay(pdMS_TO_TICKS(100)); 
+    }
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 void ws_process()
