@@ -1,5 +1,7 @@
 #ifndef INV_COMMAND_H
 #define INV_COMMAND_H
+#define RX_pin 16 // pin receive to inverter
+#define TX_pin 17 // pin transmission to inverter
 #include <Arduino.h>
 #include <string.h>
 #include <map>
@@ -135,6 +137,7 @@ public:
       "Battery Too Low To Charge", "reserved30", "reserved31"};
 
   /**************************************** public function ********************************/
+  void begin();
   void executeCommand(String input);
   void Response();
   uint16_t modbusCRC(const uint8_t *buf, uint16_t len);

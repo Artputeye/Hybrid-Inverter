@@ -2,6 +2,13 @@
 // ************************  inv_command class  ************************
 // public:
 
+void inv_command::begin()
+{
+    Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
+    Serial.println("Control Inverter Setup Completed");
+    delay(500);
+}
+
 void inv_command::executeCommand(String input)
 {
   // ตัดช่องว่างหรืออักขระแปลกปลอม (เช่น \r หรือ \n ที่อาจจะติดมา)

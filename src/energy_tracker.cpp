@@ -194,61 +194,95 @@ static void energyTrackerTask(void *pvParameters)
     }
 }
 
-// 📊 ฟังก์ชันดึงค่าประวัติรายชั่วโมง (24 ค่า) ออกมาเป็น JSON String
-String getHourlyHistoryJson()
+/**
+ * @brief ฟังก์ชันลงทะเบียน API สำหรับจัดการไฟล์เดี่ยวตามที่กำหนด
+ * @param filename ชื่อไฟล์ใน LittleFS (เช่น "/networkconfig.json")
+ * @param mode โหมดการทำงาน: 
+ *             "r"  = สร้างเฉพาะ API สำหรับดึงข้อมูล (GET)
+ *             "w"  = สร้างเฉพาะ API สำหรับบันทึกข้อมูล (POST)
+ *             "rw" = สร้างทั้งคู่ (ทั้งดึงข้อมูลและบันทึกข้อมูล)
+ */
+void setupFileAPI(String filename, String mode) 
 {
-    JsonDocument doc;
-    JsonArray array = doc.to<JsonArray>();
+  // จัดการรูปแบบชื่อไฟล์: ปลายทาง URL จะถอดเครื่องหมาย '/' ออก เพื่อให้เรียกง่ายขึ้น
+  // เช่น จากไฟล์ "/networkconfig.json" จะได้ Endpoint URL เป็น "/networkconfig.json"
+  String urlPath = filename;
+  if (urlPath.startsWith("/")) {
+    urlPath = urlPath.substring(1); 
+  }
+  urlPath = "/" + urlPath; // ตรวจสอบให้มั่นใจว่า URL เริ่มต้นด้วย /
 
-    // วนลูปเอาค่าชั่วโมงจาก Array ใส่ลงใน JSON Array
-    for (int i = 0; i < 24; i++)
+  // ==========================================
+  // ส่วนที่ 1: ลงทะเบียน API สำหรับดึงข้อมูล [GET]
+  // ==========================================
+  if (mode == "r" || mode == "rw") {
+    server.on(urlPath.c_str(), HTTP_GET, [filename](AsyncWebServerRequest *request) 
     {
-        array.add(hourlyEnergy[i]);
-    }
+      if (!LittleFS.exists(filename)) {
+        request->send(404, "application/json", "{\"error\":\"File '" + filename + "' not found\"}");
+        return;
+      }
 
-    String output;
-    serializeJson(doc, output);
-    return output;
-    // ตัวอย่างผลลัพธ์: [0.12, 0.45, 1.22, 0.0, ...]
-}
+      File file = LittleFS.open(filename, "r");
+      if (!file) {
+        request->send(500, "application/json", "{\"error\":\"Failed to open file for reading\"}");
+        return;
+      }
 
-// 📊 ฟังก์ชันดึงค่าประวัติรายวัน (30 ค่า) ออกมาเป็น JSON String
-String getDailyHistoryJson()
-{
-    JsonDocument doc;
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, file);
+      file.close();
 
-    JsonArray array = doc.to<JsonArray>();
-    for (int i = 0; i < 30; i++)
+      if (error) {
+        request->send(500, "application/json", "{\"error\":\"Failed to parse JSON\"}");
+        return;
+      }
+
+      String jsonResponse;
+      serializeJson(doc, jsonResponse);
+      Serial.printf("GET %s : %s\n", filename.c_str(), jsonResponse.c_str());
+
+      request->send(200, "application/json", jsonResponse);
+    });
+  }
+
+  // ==========================================
+  // ส่วนที่ 2: ลงทะเบียน API สำหรับบันทึกข้อมูล [POST]
+  // ==========================================
+  if (mode == "w" || mode == "rw") {
+    server.on(urlPath.c_str(), HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
+    [filename](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) 
     {
-        array.add(dailyEnergy[i]);
-    }
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, data, len);
+      if (error) {
+        Serial.println("JSON parse failed!");
+        request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+        return;
+      }
 
-    String output;
-    serializeJson(doc, output);
-    return output;
-    // ตัวอย่างผลลัพธ์: [10.5, 12.3, 9.8, 15.1, ...]
+      // เปิดไฟล์เพื่อเขียนทับ
+      File file = LittleFS.open(filename, "w");
+      if (!file) {
+        request->send(500, "application/json", "{\"error\":\"Failed to open file for writing\"}");
+        return;
+      }
+
+      // บันทึกข้อมูลลงในไฟล์
+      if (serializeJson(doc, file) == 0) {
+        request->send(500, "application/json", "{\"error\":\"Failed to write JSON\"}");
+        file.close();
+        return;
+      }
+      
+      file.close();
+      
+      Serial.printf("POST %s : Saved successfully\n", filename.c_str());
+      request->send(200, "application/json", "{\"status\":\"success\"}");
+    });
+  }
 }
 
-// 📊 ฟังก์ชันดึงค่าประวัติทั้งหมด (ทั้งชั่วโมงและวัน) ออกมารวมกันใน Object เดียว
-String getAllEnergyHistoryJson() {
-    JsonDocument doc;
-
-    // เติม JsonArray นำหน้าเพื่อประกาศประเภทตัวแปรให้ถูกต้อง
-    JsonArray hourly = doc["hourly"].to<JsonArray>();
-    for (int i = 0; i < 24; i++) {
-        hourly.add(hourlyEnergy[i]);
-    }
-
-    // เติม JsonArray ตรงนี้ด้วยเช่นกันครับ
-    JsonArray daily = doc["daily"].to<JsonArray>();
-    for (int i = 0; i < 30; i++) {
-        daily.add(dailyEnergy[i]);
-    }
-
-    String output;
-    serializeJson(doc, output);
-    return output;
-}
 
 // ฟังก์ชันเริ่มต้นระบบ
 void initEnergyTracker()

@@ -2,30 +2,30 @@
 #include "ha_integration.h"
 
 // --- Diagnostic Entities Pointer ---
-HASensor* ipAddrSensor = nullptr;
-HASensor* macAddrSensor = nullptr;
-HASensor* uptimeSensor = nullptr;
-HASensor* rssiSensor = nullptr;
+HASensor *ipAddrSensor = nullptr;
+HASensor *macAddrSensor = nullptr;
+HASensor *uptimeSensor = nullptr;
+HASensor *rssiSensor = nullptr;
 
 // --- Switch Object Pointer ---
-HASwitch* grid = nullptr;
+HASwitch *grid = nullptr;
 
 // --- Sensor Object Pointer ---
-HASensorNumber* LoadPercent = nullptr;
-HASensorNumber* EnergyDaily = nullptr;
-HASensorNumber* GridPower = nullptr;
-HASensorNumber* ActivePower = nullptr;
-HASensorNumber* ApparentPower = nullptr;
-HASensorNumber* OutputVolt = nullptr;
-HASensorNumber* OutputCurrent = nullptr;
-HASensorNumber* OutputFrequency = nullptr;
-HASensorNumber* PowerFactor = nullptr;
-HASensorNumber* pvPower = nullptr;
-HASensorNumber* pvCurrent = nullptr;
-HASensorNumber* pvVoltage = nullptr;
-HASensorNumber* BusVoltage = nullptr;
-HASensorNumber* BattVoltage = nullptr;
-HASensorNumber* Temp = nullptr;
+HASensorNumber *LoadPercent = nullptr;
+HASensorNumber *EnergyDaily = nullptr;
+HASensorNumber *GridPower = nullptr;
+HASensorNumber *ActivePower = nullptr;
+HASensorNumber *ApparentPower = nullptr;
+HASensorNumber *OutputVolt = nullptr;
+HASensorNumber *OutputCurrent = nullptr;
+HASensorNumber *OutputFrequency = nullptr;
+HASensorNumber *PowerFactor = nullptr;
+HASensorNumber *pvPower = nullptr;
+HASensorNumber *pvCurrent = nullptr;
+HASensorNumber *pvVoltage = nullptr;
+HASensorNumber *BusVoltage = nullptr;
+HASensorNumber *BattVoltage = nullptr;
+HASensorNumber *Temp = nullptr;
 
 void iotHAsetup()
 {
@@ -48,8 +48,7 @@ void iotHAsetup()
 
     uptimeSensor = new HASensor("uptime");
     uptimeSensor->setName("Uptime");
-    uptimeSensor->setUnitOfMeasurement("s");
-    uptimeSensor->setIcon("mdi:timer-outline");
+    uptimeSensor->setIcon("mdi:clock-start");
 
     rssiSensor = new HASensor("rssi");
     rssiSensor->setName("WiFi Signal");
@@ -144,14 +143,14 @@ void iotHAsetup()
     IPAddress mqttIP;
 
     if (mqttIP.fromString(MQTT_ADDR))
-        {
-            Serial.printf("[HA] Connecting to MQTT: %s:%d\n", MQTT_ADDR, port);
-            mqtt.begin(mqttIP, port, MQTT_USER, MQTT_PASS);
-        }
+    {
+        Serial.printf("[HA] Connecting to MQTT: %s:%d\n", MQTT_ADDR, port);
+        mqtt.begin(mqttIP, port, MQTT_USER, MQTT_PASS);
+    }
     else
-        {
-            Serial.println(F("❌ [HA] Invalid MQTT IP Address"));
-        }
+    {
+        Serial.println(F("❌ [HA] Invalid MQTT IP Address"));
+    }
 }
 
 void iotHAsim()
@@ -180,23 +179,33 @@ void iotHAsim()
 void HA_Diagnostic()
 {
     // ตรวจสอบตัวใดตัวหนึ่งในกลุ่ม Diagnostic เพื่อป้องกัน nullptr crash
-    if (ipAddrSensor == nullptr) return;
+    if (ipAddrSensor == nullptr)
+        return;
 
     // 1. IP และ MAC
     ipAddrSensor->setValue(WiFi.localIP().toString().c_str());
     macAddrSensor->setValue(MacAddr.c_str());
 
-    // 2. Uptime
-    uint32_t currentUptime = millis() / 1000;
-    uptimeSensor->setValue(String(currentUptime).c_str());
+    // 2. Uptime (แปลงจาก millis เป็น dd:hh:mm)
+    uint32_t totalSeconds = millis() / 1000;
+
+    uint32_t days = totalSeconds / 86400;
+    uint32_t hours = (totalSeconds % 86400) / 3600;
+    uint32_t minutes = (totalSeconds % 3600) / 60;
+
+    // จัดฟอร์แมตให้อยู่ในรูป dd:hh:mm (ใส่ %02u เพื่อให้มีเลข 0 นำหน้ากรณีเป็นเลขหลักเดียว)
+    char uptimeStr[16];
+    snprintf(uptimeStr, sizeof(uptimeStr), "%02u:%02u:%02u", days, hours, minutes);
+
+    uptimeSensor->setValue(uptimeStr);
 
     // 3. RSSI
     int8_t rssiVal = WiFi.RSSI();
     rssiSensor->setValue(String(rssiVal).c_str());
 
-    Serial.printf("[HA] Diag Update - Uptime: %u s, RSSI: %d dBm\n", currentUptime, rssiVal);
+    // ปรับ Serial log ให้แสดงค่ารูปแบบใหม่
+    Serial.printf("[HA] Diag Update - Uptime: %s, RSSI: %d dBm\n", uptimeStr, rssiVal);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // sent switch command to inverter
@@ -221,7 +230,7 @@ void iotHArun()
         mqtt.loop(); // Or whatever your MQTT client instance loop is called
         iotHAsim();
     }
-    
+
     // อัปเดต Diagnostic ทุกๆ 30 วินาที (ตัวอย่าง)
     static unsigned long lastDiag = 0;
     if (millis() - lastDiag > 30000)

@@ -210,7 +210,7 @@ void wsJsonControll(const String &msg)
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-void ws_process()
+void wsProcess()
 {
     if (millis() - lastTimeMonitor > MonitorDelay)
     {

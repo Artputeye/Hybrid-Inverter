@@ -3,6 +3,7 @@
 
 void app_setup()
 {
+  inv.begin();
   loadEnergyFromFile();
   Serial.println("Load Energy From FS");
   delay(500);

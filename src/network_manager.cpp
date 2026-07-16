@@ -6,9 +6,8 @@ const unsigned long HOLD_MS = 5000;
 // State variables
 static unsigned long pressStart = 0;
 static bool pressed = false;
-static unsigned long lastChangeTime = 0;
 
-void APmode_Check()
+void apModeCheck()
 {
     bool isPressed = (digitalRead(AP_PIN) == LOW);
 
@@ -32,18 +31,38 @@ void APmode_Check()
     }
 }
 
-void wifi_Setup()
+void network_setup()
 {
+    if (!LittleFS.begin(true))
+    {
+        Serial.println(F("❌ LittleFS Mount Failed"));
+    }
+    else
+    {
+        Serial.println(F("✅ LittleFS Mounted"));
+    }
+    delay(500);
+
     WiFi.onEvent(WiFiEvent);
     readNetworkConfig();
-
     if (isWifiApMode == 1)
     { // STA Mode
         setupIPConfig();
     }
 
     setupWiFiMode();
-    lastChangeTime = millis();
+
+    initWebRoutes();
+    delay(500);
+
+    ws_init();
+    delay(500);
+
+    setupOTAManagement();
+    delay(500);
+
+    server.begin();
+    delay(500);
 }
 
 void mac_config()
