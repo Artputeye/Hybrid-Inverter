@@ -85,7 +85,7 @@ function fetchToserver(message) {
         body: formdata,
         redirect: "follow"
     };
-    fetch("/cmd", requestOptions)
+    fetch("/terminalSet", requestOptions)
         .then((response) => response.text())
         .then((result) => console.log("Respond:", result))
         .catch((error) => console.error("Error:", error));

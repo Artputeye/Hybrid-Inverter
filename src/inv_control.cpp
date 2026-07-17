@@ -10,7 +10,7 @@ const float GRID_OFF_THRESHOLD = 1.0;
 //////////////////////////////////////////////////////////////////////////////////
 unsigned long lastQvalue = 0;
 unsigned long lastQrate = 0;
-unsigned long lastRespons = 0;
+
 unsigned long lastFile = 0;
 unsigned long lastGridOpr = 0;
 unsigned long lastGridCheck = 0;
@@ -18,7 +18,7 @@ unsigned long lastEnergy = 0;
 /////////////////////////////////////////////////////////////////////////////////
 const unsigned long qvalInterval = 5000;
 const unsigned long qrateInterval = 10000;
-const unsigned long resInterval = 100;
+
 const unsigned long fileInterval = 15 * 60 * 1000; //record to file every 15 minutes
 const unsigned long gridOprInterval = 1000;
 const unsigned long gridCheckInterval = 1 * 60 * 1000; //(1 * 60 * 1000 ms)
@@ -36,47 +36,13 @@ void gridRun()
         lastQvalue = millis();
         if (inv.RunMode)
         {
-            inv.cmd_inv("QPIGS");
+            inv.sendCommand("QPIGS");
             //Serial.println("Sent in function gridRun");
             //wsJsonControll("Sent in function gridRun");
         }
         simulateData();
     }
 
-    // if ((millis() - lastQrate) > qrateInterval) // ทุกๆ 10 วินาที
-    // {
-    //     lastQrate = millis();
-    //     if (inv.RunMode)
-    //     {
-    //         if (toggle)
-    //         {
-    //             inv.cmd_inv("QPIRI"); 
-    //         }
-    //         else
-    //         {
-    //             inv.cmd_inv("QPIWS"); 
-    //         }
-    //         toggle = !toggle;
-    //     }
-    // }
-
-    // 2. ส่วนรับข้อมูล (Response Handler) ทำหน้าที่คอยตรวจเช็กทุกๆ 100ms
-    if ((millis() - lastRespons) > resInterval) 
-    {
-        lastRespons = millis();
-        
-        // บันทึกค่าความยาวก่อนเรียก Response เพื่อเอาไว้เช็กว่ามีข้อมูลใหม่เข้ามาจริงไหม
-        int oldLen = inv.invData.length(); 
-        
-        inv.Response(); // เรียกตรวจสอบข้อมูลขาเข้า
-        
-        // ถ้าค่า invData เปลี่ยนไป และไม่เป็นค่าว่าง แสดงว่าได้รับข้อมูลชุดใหม่เรียบร้อยแล้ว
-        if (inv.invData.length() > 0 && inv.invData.length() != oldLen)
-        {
-            //wsJsonInverter("Respond from inv.invData: " + inv.invData);
-            //wsJsonSerial(inv.serialData);
-        }
-    }
 }
 
 void gridOperation()

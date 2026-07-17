@@ -6,7 +6,7 @@
 #include <string.h>
 #include <map>
 
-class inv_command
+class invHybrid
 {
 public:
   /***************************************** public variable********************************/
@@ -143,7 +143,7 @@ public:
   uint16_t modbusCRC(const uint8_t *buf, uint16_t len);
   size_t buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t value, uint8_t *frame);
   void valueToinv(String Name, uint16_t val);
-  void cmd_inv(String data);
+  void sendCommand(String data);
 
 private:
   /***************************************** private function *******************************/

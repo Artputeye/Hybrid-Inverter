@@ -65,17 +65,25 @@ function upload() {
     formData.append("type", type);
 
     const xhr = new XMLHttpRequest();
+
     xhr.upload.onprogress = e => {
       if (e.lengthComputable) {
-        progress.value = ((uploaded + e.loaded) / totalSize) * 100;
+        const currentProgress = ((uploaded + e.loaded) / totalSize) * 100;
+        progress.value = currentProgress;
+        console.log("Overall Progress: " + currentProgress.toFixed(2) + "%");
       }
     };
 
     xhr.onload = () => {
       if (xhr.status === 200) {
         uploaded += file.size;
+        const currentProgress = ((uploaded / totalSize) * 100).toFixed(1);
+        console.log(
+          `[Success] Uploaded: "${path}" | Total Progress: ${currentProgress}% (${index + 1}/${files.length} files done)`
+        );
         uploadFile(index + 1);
       } else {
+        console.error(`[Failed] Upload failed for "${path}" with status ${xhr.status}`);
         alert("Upload failed: " + xhr.responseText);
         progress.value = 0;
       }

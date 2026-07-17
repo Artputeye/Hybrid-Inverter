@@ -1,69 +1,59 @@
-#include "inv_command.h"
-// ************************  inv_command class  ************************
+#include "invHybrid.h"
+// ************************  invHybrid class  ************************
 // public:
+unsigned long lastRespons = 0;
+const unsigned long resInterval = 100;
 
-void inv_command::begin()
+void invHybrid::begin()
 {
-    Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
-    Serial.println("Control Inverter Setup Completed");
-    delay(500);
+  Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
+  Serial.println("Control Inverter Setup Completed");
+  delay(500);
 }
 
-void inv_command::executeCommand(String input)
+void invHybrid::executeCommand(String input)
 {
-  // ตัดช่องว่างหรืออักขระแปลกปลอม (เช่น \r หรือ \n ที่อาจจะติดมา)
   input.trim();
-
   if (input.length() == 0)
-    return; // ถ้าส่งค่าว่างมา ไม่ต้องทำอะไรต่อ
-
+    return; 
   Serial.print("Executing Command : ");
   Serial.println(input);
-
-  // ส่งไปประมวลผลต่อที่ฟังก์ชันของ Inverter เดิม
-  cmd_inv(input);
-
-  // พิมพ์ดูความยาวคำสั่ง (เหมือนโค้ดเดิมของคุณ)
+  sendCommand(input);
   len = input.length();
   Serial.println("len1: " + String(len));
 }
 
-void inv_command::Response()
+void invHybrid::Response()
 {
-
-    unsigned long startTime = millis();
-    const unsigned long timeout = 500; // อยู่ใน loop ไม่เกิน 500ms
-
-    while (Serial2.available() > 0 && millis() - startTime < timeout)
+  unsigned long startTime = millis();
+  const unsigned long timeout = 500; 
+  while (Serial2.available() > 0 && millis() - startTime < timeout)
+  {
+    invData = Serial2.readStringUntil('\n');
+    Serial.println("Inverter respond");
+    Serial.println(invData);
+    len = invData.length();
+    Serial.println("len: " + String(len));
+    if (len == 110)
     {
-      invData = Serial2.readStringUntil('\n');
-      Serial.println("Inverter respond");
-      Serial.println(invData);
-      len = invData.length();
-      Serial.println("len: " + String(len));
-
-      if (len == 110)
-      {
-        parseQPIGS(invData);
-        lastResponseTime = millis();
-      }
-      if (len == 112)
-      {
-        parseQPIRI(invData);
-        lastResponseTime = millis();
-      }
-      if (len == 36)
-      {
-        parseQPIWS(invData);
-        lastResponseTime = millis();
-      }
-
-      vTaskDelay(10);
+      parseQPIGS(invData);
+      lastResponseTime = millis();
     }
+    if (len == 112)
+    {
+      parseQPIRI(invData);
+      lastResponseTime = millis();
+    }
+    if (len == 36)
+    {
+      parseQPIWS(invData);
+      lastResponseTime = millis();
+    }
+    vTaskDelay(10);
   }
+}
 
-
-uint16_t inv_command::modbusCRC(const uint8_t *buf, uint16_t len)
+uint16_t invHybrid::modbusCRC(const uint8_t *buf, uint16_t len)
 {
   uint16_t crc = 0xFFFF;
   for (uint16_t pos = 0; pos < len; pos++)
@@ -85,8 +75,7 @@ uint16_t inv_command::modbusCRC(const uint8_t *buf, uint16_t len)
   return crc;
 }
 
-// ฟังก์ชันสร้าง Modbus Write Single Register (0x06)
-size_t inv_command::buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t value, uint8_t *frame)
+size_t invHybrid::buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t value, uint8_t *frame)
 {
   frame[0] = slaveID;        // Slave ID
   frame[1] = 0x06;           // Function code (Write Single Register)
@@ -102,7 +91,7 @@ size_t inv_command::buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t
   return 8; // frame length
 }
 
-void inv_command::valueToinv(String Name, uint16_t val)
+void invHybrid::valueToinv(String Name, uint16_t val)
 {
   if (Name == "Grid Tie Auto" && val == 1)
   {
@@ -118,7 +107,7 @@ void inv_command::valueToinv(String Name, uint16_t val)
   }
 
   uint8_t frame[8];
-  auto it = InvAddress.find(Name); // ตรวจสอบชื่อ register
+  auto it = InvAddress.find(Name); 
   if (it == InvAddress.end())
   {
     Serial.println("Register not found: " + Name);
@@ -140,9 +129,9 @@ void inv_command::valueToinv(String Name, uint16_t val)
   Serial.println();
 }
 
-void inv_command::cmd_inv(String data)
+void invHybrid::sendCommand(String data)
 {
-  // erial.println("Sent in function cmd_inv");
+  // erial.println("Sent in function sendCommand");
 
   // inquiry command to inverter
   // it will be calculated and added before send) // crc "\xB7\xA9" // CR "\x0D"
@@ -344,13 +333,30 @@ void inv_command::cmd_inv(String data)
   {
     help();
   }
+
+  if ((millis() - lastRespons) > resInterval)
+  {
+    lastRespons = millis();
+
+    // บันทึกค่าความยาวก่อนเรียก Response เพื่อเอาไว้เช็กว่ามีข้อมูลใหม่เข้ามาจริงไหม
+    int oldLen = invData.length();
+
+    Response(); // เรียกตรวจสอบข้อมูลขาเข้า
+
+    // ถ้าค่า invData เปลี่ยนไป และไม่เป็นค่าว่าง แสดงว่าได้รับข้อมูลชุดใหม่เรียบร้อยแล้ว
+    if (invData.length() > 0 && invData.length() != oldLen)
+    {
+      // wsJsonInverter("Respond from inv.invData: " + inv.invData);
+      // wsJsonSerial(inv.serialData);
+    }
+  }
 }
 
 // private:
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-void inv_command::parseQPIGS(String response)
+void invHybrid::parseQPIGS(String response)
 {
   if (response.startsWith("("))
   {
@@ -442,7 +448,7 @@ void inv_command::parseQPIGS(String response)
   data.pvPower = data.pvCurrent * data.pvVoltage;
 }
 
-void inv_command::parseQPIRI(String response)
+void invHybrid::parseQPIRI(String response)
 {
   if (response.startsWith("("))
   {
@@ -546,7 +552,7 @@ void inv_command::parseQPIRI(String response)
   }
 }
 
-void inv_command::parseQPIWS(const String &resp)
+void invHybrid::parseQPIWS(const String &resp)
 {
   if (resp.length() < 34)
   {
@@ -576,12 +582,12 @@ void inv_command::parseQPIWS(const String &resp)
   Serial.println("Parsed Fault List: " + faultList);
 }
 
-void inv_command::sentinv(String data)
+void invHybrid::sentinv(String data)
 {
   Serial.println("Sent command " + data + " to Inverter");
 }
 
-void inv_command::help()
+void invHybrid::help()
 {
   Serial.println("*********************** command ***********************");
   Serial.println("QPIGS //Device general status parameters inquiry");

@@ -4,10 +4,9 @@ const char *PARAM_MESSAGE PROGMEM = "plain";
 
 void initWebRoutes()
 {
-  //setupOTAUpload();
   staticRoot();
   JsonSetting();
-  cmdSetting();
+  terminalSetting();
   getSetting();
   saveSetting();
   getbatSetting();
@@ -110,9 +109,9 @@ void JsonSetting() // Control Route
 }
 
 ///////////////////////////////////// COMMAND SETTING //////////////////////////////////////
-void cmdSetting() // control route
+void terminalSetting() // control route
 {
-  server.on("/cmd", HTTP_POST, [](AsyncWebServerRequest *request)
+  server.on("/terminalSet", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     String message;
     if (request->hasParam(PARAM_MESSAGE, true)) {
@@ -121,7 +120,7 @@ void cmdSetting() // control route
       message = "No message sent";
       Serial.println("No message sent");
     }
-    inv.cmd_inv(message);
+    inv.sendCommand(message);
     Serial.println("POST client: " + message);
     request->send(200, "text/plain", "POST: " + message); });
 }

@@ -4,7 +4,7 @@
 // --- Global Objects ---
 AsyncWebServer server(80);
 File fsUploadFile;
-inv_command inv;
+invHybrid inv;
 
 // --- Device Info ---
 char D_SoftwareVersion[15] = "1.2.8";

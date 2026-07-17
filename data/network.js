@@ -117,9 +117,9 @@ function IPconfig(el) {
 
 function toggleSetting(checkbox, settingName) {
   const status = checkbox.checked ? "1" : "0";
-  const cmd = settingName + " " + status;
-  console.log(cmd);
-  //fetchToserver(cmd);
+  const command = settingName + " " + status;
+  console.log(command);
+  //fetchToserver(command);
 }
 
 function fetchToserver(message) {
@@ -131,7 +131,7 @@ function fetchToserver(message) {
         body: formdata,
         redirect: "follow"
     };
-    fetch("/cmd", requestOptions)
+    fetch("/terminalSet", requestOptions)
         .then((response) => response.text())
         .then((result) => console.log("Respond:", result))
         .catch((error) => console.error("Error:", error));

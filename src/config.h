@@ -14,7 +14,7 @@
 #include <esp_task_wdt.h>
 #include <time.h>
 #include <esp_now.h>
-#include "inv_command.h"
+#include "invHybrid.h"
 //#include "driver/rmt.h"
 #include "rom/rtc.h" 
 
@@ -26,7 +26,7 @@
 #define FILESYSTEM LittleFS
 
 // --- Inverter command Objects (Extern) ---
-extern inv_command inv;
+extern invHybrid inv;
 
 // --- Global Objects (Extern) ---
 extern AsyncWebServer server;

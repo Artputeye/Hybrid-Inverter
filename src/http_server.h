@@ -7,7 +7,7 @@ String getContentType(String filename);
 void staticRoot();
 void notfoundRoot();
 void JsonSetting();
-void cmdSetting();
+void terminalSetting();
 void getSetting();
 void saveSetting();
 void getbatSetting();
