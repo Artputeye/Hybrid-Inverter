@@ -14,6 +14,7 @@ bool saveJsonFile(const char *filename, const JsonDocument &doc);
 // Application Specific Settings
 bool loadAllSettings();
 bool saveWifiModeSetting();
+
 // Application Specific Energy
 bool loadEnergyFromFile();
 bool saveEnergyToFile();

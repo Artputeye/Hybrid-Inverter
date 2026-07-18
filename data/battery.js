@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // โหลดค่าจาก server
-  fetch('/getbattsetting')
+  fetch('/battery.json')
     .then(response => response.json())
     .then(data => {
       console.log(data);
@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ส่งค่าไป server
   function settingToserver(settingName, state) {
-    fetch('/setting', {
+    fetch('/invsetting', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ setting: settingName, value: state })
@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (id) data[id] = select.value;
     });
 
-    fetch('/battsetting', {
+    fetch('/battery.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)

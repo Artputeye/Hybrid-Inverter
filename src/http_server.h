@@ -2,17 +2,14 @@
 #define HTTP_SERVER_H
 #include "config.h"
 
+void setupRouteAPIs();
 void initWebRoutes();
 String getContentType(String filename);
 void staticRoot();
 void notfoundRoot();
-void JsonSetting();
+void inverterSetting();
 void terminalSetting();
-void getSetting();
-void saveSetting();
-void getbatSetting();
-void savebatSetting();
-void getNetwork();
-void saveNetwork();
+void routeSettingAPI(String filename, String mode) ;
+void notfoundRoot();
 
 #endif

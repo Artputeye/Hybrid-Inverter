@@ -13,7 +13,8 @@ function sendConfig() {
   config.wifi_mode = document.getElementById("wifiModeToggle").checked ? "1" : "0";
   config.ip_config = document.getElementById("ipConfigToggle").checked ? "1" : "0";
 
-  fetch('/networkconfig', {
+  // แก้ไข URL ตรงนี้จาก '/networkconfig' เป็น '/networkconfig.json' ให้ตรงกับระบบใหม่
+  fetch('/networkconfig.json', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -34,7 +35,6 @@ function sendConfig() {
     });
   console.log(config);
 }
-
 function wifiMode(checkbox) {
   const mode = document.getElementById("wifi-mode");
   const status = checkbox.checked ? "STATION" : "ACCESS POINT";
@@ -66,8 +66,15 @@ window.addEventListener("load", () => {
 });
 
 function loadConfig() {
-  fetch("/getnetworkconfig")
-    .then(res => res.json())
+  // เปลี่ยน URL ตรงนี้ให้ตรงกับชื่อไฟล์ (ซึ่งกลายเป็น Endpoint URL ของเราแล้ว)
+  fetch("/networkconfig.json")
+    .then(res => {
+      // เพิ่มการตรวจจับ Error เผื่อในกรณีที่บอร์ดหาไฟล์ไม่เจอ หรือส่ง 404/500 กลับมา
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
     .then(config => {
       console.log("Received config:", config);
 

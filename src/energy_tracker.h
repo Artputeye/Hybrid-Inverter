@@ -10,6 +10,4 @@ void initEnergyTracker();
 bool saveEnergyToJson();
 bool loadEnergyFromJson();
 
-void setupFileAPI(String filename, String mode) ;
-
 #endif // ENERGY_TRACKER_H

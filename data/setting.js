@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch('/getsetting')
+  fetch('/setting.json')
     .then(response => response.json())
     .then(data => {
       // ✅ โหลดค่ากลับให้ select
@@ -65,7 +65,7 @@ function toggleSetting(checkbox, settingName) {
 function settingToserver(settingName, state) {
   console.log(`${settingName} has been toggled to ${state}`);
 
-  fetch('/setting', {
+  fetch('/invsetting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -91,7 +91,7 @@ function sendSetting(data) {
   const settingType = container.getAttribute('data-setting');
   const value = container.querySelector('select').value;
 
-  fetch('/setting', {
+  fetch('/invsetting', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ function submitAllSettings() {
   console.log("Successed:", data);
 
   // ส่ง JSON ไปยัง ESP32
-  fetch('/savesetting', {
+  fetch('/setting.json', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -188,7 +188,7 @@ function GridCutToServer() {
     return;
   }
   console.log(`📤 ส่งค่าไป server: gridCutOff=${gridCutOff}, gridStart=${gridStart}`);
-  fetch('/setting', {
+  fetch('/invsetting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ gridCutOff, gridStart })

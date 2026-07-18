@@ -1,19 +1,27 @@
 #include "http_server.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
 
-
 void initWebRoutes()
 {
+  setupRouteAPIs();
   staticRoot();
-  JsonSetting();
+  inverterSetting();
   terminalSetting();
-  getSetting();
-  saveSetting();
-  getbatSetting();
-  savebatSetting();
-  getNetwork();
-  saveNetwork();
+
   notfoundRoot();
+}
+
+void setupRouteAPIs()
+{
+  String configFiles[] = {
+      "/networkconfig.json",
+      "/setting.json",
+      "/battery.json"};
+  int fileCount = sizeof(configFiles) / sizeof(configFiles[0]);
+  for (int i = 0; i < fileCount; i++)
+  {
+    routeSettingAPI(configFiles[i], "rw");
+  }
 }
 
 String getContentType(String filename)
@@ -65,9 +73,9 @@ void staticRoot()
 }
 
 ///////////////////////////////////// PARAMETER SETTING ////////////////////////////////////
-void JsonSetting() // Control Route
+void inverterSetting() // Control Route
 {
-  server.on("/setting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+  server.on("/invsetting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
             {
       JsonDocument doc;
       DeserializationError error = deserializeJson(doc, data, len);
@@ -125,211 +133,113 @@ void terminalSetting() // control route
     request->send(200, "text/plain", "POST: " + message); });
 }
 
-///////////////////////////////////// GENERAL SETTING //////////////////////////////////////
-
-void getSetting() // API: ดึง JSON จาก littleFS แล้วส่ง Setting.json ไปยัง Client
+/**
+ * @brief ฟังก์ชันลงทะเบียน API สำหรับจัดการไฟล์เดี่ยวตามที่กำหนด
+ * @param filename ชื่อไฟล์ใน LittleFS (เช่น "/networkconfig.json")
+ * @param mode โหมดการทำงาน:
+ *             "r"  = สร้างเฉพาะ API สำหรับดึงข้อมูล (GET)
+ *             "w"  = สร้างเฉพาะ API สำหรับบันทึกข้อมูล (POST)
+ *             "rw" = สร้างทั้งคู่ (ทั้งดึงข้อมูลและบันทึกข้อมูล)
+ */
+void routeSettingAPI(String filename, String mode)
 {
-  server.on("/getsetting", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    if (!LittleFS.exists("/setting.json")) {
-      request->send(404, "application/json", "{\"error\":\"setting.json not found\"}");
-      return;
+  while (filename.startsWith("/"))
+  {
+    filename = filename.substring(1);
+  }
+  String fsPath = "/" + filename;
+  String urlPath = "/" + filename;
+
+  // ==========================================
+  // [จุดสำคัญ] เช็กและดักสร้างไฟล์ตั้งแต่บอร์ด Boot
+  // หากไม่มีไฟล์ ให้ใช้โหมด "w+" เพื่อสร้างไฟล์ใหม่แกะกล่องทันที
+  // ==========================================
+  if (!LittleFS.exists(fsPath))
+  {
+    Serial.printf("[LittleFS] %s not found. Force creating with write permits...\n", fsPath.c_str());
+    File initFile = LittleFS.open(fsPath, "w+");
+    if (initFile)
+    {
+      initFile.print("{}");
+      initFile.close();
+      Serial.printf("[LittleFS] Created template structure for %s\n", fsPath.c_str());
     }
-
-    File file = LittleFS.open("/setting.json", "r");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
+    else
+    {
+      Serial.printf("[LittleFS] Critical Error: Cannot create %s\n", fsPath.c_str());
     }
+  }
 
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-    file.close();
+  // ==========================================
+  // ส่วนที่ 1: API สำหรับดึงข้อมูล [GET]
+  // ==========================================
+  if (mode == "r" || mode == "rw")
+  {
+    server.on(urlPath.c_str(), HTTP_GET, [fsPath](AsyncWebServerRequest *request)
+              {
+      // เปิดไฟล์อ่านแบบทนทาน (Safe Read)
+      File file = LittleFS.open(fsPath, "r");
+      if (!file) {
+        request->send(200, "application/json", "{}"); // คืนค่าเซ็ตเปล่าป้องกันเว็บพัง
+        return;
+      }
 
-    if (error) {
-      request->send(500, "application/json", "{\"error\":\"Failed to parse JSON\"}");
-      return;
-    }
-
-    inv.gridOpr = atoi(doc["Grid Tie Auto"] | "0"); // grid tie auto status
-    Serial.println("Grid Operate from \"setting.json : " + String(inv.gridOpr));
-
-    String jsonResponse;
-    serializeJson(doc, jsonResponse);
-    Serial.println("/get setting : " + jsonResponse);
-
-    request->send(200, "application/json", jsonResponse); });
-}
-
-///////////////////////////////////// SAVE SETTING /////////////////////////////////////////
-void saveSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ Setting.json ไปยัง littleFS
-{
-  server.on("/savesetting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
-            {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, data, len);
-    if (error) {
-      Serial.println("JSON parse failed!");
-      request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-      return;
-    }
-    // Debug: แสดงค่าที่ได้รับ
-    for (JsonPair kv : doc.as<JsonObject>()) {
-      String key = kv.key().c_str();
-      String value = kv.value().as<String>();
-      //Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
-    }
-    // เปิดไฟล์เพื่อเขียนทับ
-    File file = LittleFS.open("/setting.json", "w");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
-    }
-    // เขียน JSON ลงไฟล์
-    if (serializeJson(doc, file) == 0) {
-      request->send(500, "application/json", "{\"error\":\"Failed to write JSON\"}");
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, file);
       file.close();
-      return;
-    }
-    file.close();
-    request->send(200, "application/json", "{\"status\":\"ok\"}"); });
 
-  // ESP.restart();
-}
+      if (error) {
+        request->send(200, "application/json", "{}");
+        return;
+      }
 
-///////////////////////////////////// BATTERY SETTING //////////////////////////////////////
-void getbatSetting() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
-{
-  server.on("/getbattsetting", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    if (!LittleFS.exists("/battery.json")) {
-      request->send(404, "application/json", "{\"error\":\"battery.json not found\"}");
-      return;
-    }
+      String jsonResponse;
+      serializeJson(doc, jsonResponse);
+      request->send(200, "application/json", jsonResponse); });
+  }
 
-    File file = LittleFS.open("/battery.json", "r");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
-    }
+  // ==========================================
+  // ส่วนที่ 2: API สำหรับบันทึกข้อมูล [POST]
+  // ==========================================
+  if (mode == "w" || mode == "rw")
+  {
+    server.on(urlPath.c_str(), HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [fsPath](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+              {
+        static String jsonBuffer = "";
+        if (index == 0) { jsonBuffer = ""; }
 
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-    file.close();
+        for (size_t i = 0; i < len; i++) {
+          jsonBuffer += (char)data[i];
+        }
 
-    if (error) {
-      request->send(500, "application/json", "{\"error\":\"Failed to parse JSON\"}");
-      return;
-    }
+        if (index + len == total) {
+          JsonDocument doc;
+          DeserializationError error = deserializeJson(doc, jsonBuffer);
+          
+          if (error) {
+            Serial.println("JSON parse failed!");
+            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+            return;
+          }
 
-    String jsonResponse;
-    serializeJson(doc, jsonResponse);
-    Serial.println("/get battsetting : " + jsonResponse);
+          // เปิดเขียนทับด้วยมิติความปลอดภัยสูงสุด
+          File file = LittleFS.open(fsPath, "w");
+          if (!file) {
+            request->send(500, "application/json", "{\"error\":\"Failed to open file for writing\"}");
+            return;
+          }
 
-    request->send(200, "application/json", jsonResponse); });
-}
-
-///////////////////////////////////// BATTERY SETTING //////////////////////////////////////
-void savebatSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
-{
-  server.on("/battsetting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
-            {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, data, len);
-    if (error) {
-      Serial.println("JSON parse failed!");
-      request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-      return;
-    }
-    // Debug: แสดงค่าที่ได้รับ
-    for (JsonPair kv : doc.as<JsonObject>()) {
-      String key = kv.key().c_str();
-      String value = kv.value().as<String>();
-      //Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
-    }
-    // เปิดไฟล์เพื่อเขียนทับ
-    File file = LittleFS.open("/battery.json", "w");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
-    }
-    // เขียน JSON ลงไฟล์
-    if (serializeJson(doc, file) == 0) {
-      request->send(500, "application/json", "{\"error\":\"Failed to write JSON\"}");
-      file.close();
-      return;
-    }
-    file.close();
-    request->send(200, "application/json", "{\"status\":\"ok\"}"); });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// NETWORK SETTING LOAD /////////////////////////////////
-
-void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่ง networkconfig.json ไปยัง Client
-{
-  server.on("/getnetworkconfig", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    if (!LittleFS.exists("/networkconfig.json")) {
-      request->send(404, "application/json", "{\"error\":\"networkconfig.json not found\"}");
-      return;
-    }
-
-    File file = LittleFS.open("/networkconfig.json", "r");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
-    }
-
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, file);
-    file.close();
-
-    if (error) {
-      request->send(500, "application/json", "{\"error\":\"Failed to parse JSON\"}");
-      return;
-    }
-
-    String jsonResponse;
-    serializeJson(doc, jsonResponse);
-    Serial.println("/get networkconfig : " + jsonResponse);
-
-    request->send(200, "application/json", jsonResponse); });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// NETWORK SETTING SAVE /////////////////////////////////
-void saveNetwork() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
-{
-  server.on("/networkconfig", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
-            {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, data, len);
-    if (error) {
-      Serial.println("JSON parse failed!");
-      request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-      return;
-    }
-    // Debug: แสดงค่าที่ได้รับ
-    for (JsonPair kv : doc.as<JsonObject>()) {
-      String key = kv.key().c_str();
-      String value = kv.value().as<String>();
-      Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
-    }
-    // เปิดไฟล์เพื่อเขียนทับ
-    File file = LittleFS.open("/networkconfig.json", "w");
-    if (!file) {
-      request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
-      return;
-    }
-    // เขียน JSON ลงไฟล์
-    if (serializeJson(doc, file) == 0) {
-      request->send(500, "application/json", "{\"error\":\"Failed to write JSON\"}");
-      file.close();
-      return;
-    }
-    file.close();
-    request->send(200, "application/json", "{\"status\":\"ok\"}"); });
+          if (serializeJson(doc, file) == 0) {
+            request->send(500, "application/json", "{\"error\":\"Failed to write JSON\"}");
+            file.close();
+            return;
+          }
+          
+          file.close();
+          Serial.printf("POST %s : Saved successfully\n", fsPath.c_str());
+          request->send(200, "application/json", "{\"status\":\"success\"}");
+        } });
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

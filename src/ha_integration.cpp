@@ -38,29 +38,29 @@ void iotHAsetup()
     device.setModel(D_Model);
 
     // 2. สร้างและตั้งค่า Diagnostic Entities
+// --- IP Address ---
     ipAddrSensor = new HASensor("ip_address");
     ipAddrSensor->setName("IP Address");
     ipAddrSensor->setIcon("mdi:ip-network");
 
+    // --- MAC Address ---
     macAddrSensor = new HASensor("mac_address");
     macAddrSensor->setName("MAC Address");
     macAddrSensor->setIcon("mdi:lan-connect");
+    //macAddrSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
 
+    // --- Uptime ---
     uptimeSensor = new HASensor("uptime");
     uptimeSensor->setName("Uptime");
-    uptimeSensor->setIcon("mdi:clock-start");
+    uptimeSensor->setIcon("mdi:clock");
+    //uptimeSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
 
+    // --- WiFi Signal ---
     rssiSensor = new HASensor("rssi");
     rssiSensor->setName("WiFi Signal");
     rssiSensor->setUnitOfMeasurement("dBm");
     rssiSensor->setDeviceClass("signal_strength");
-
-    // 3. สร้างและตั้งค่า Entities (สวิตช์/เซนเซอร์)
-    grid = new HASwitch("grid");
-    grid->onCommand(GridTie);
-    grid->setName("Grid Tie");
-    grid->setIcon("mdi:transmission-tower-export");
-    // grid->getCurrentState(); // หากต้องการใช้ให้เปลี่ยนเป็น ->
+    //rssiSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
 
     ////////////////////////////////////////////////////////////////////////////////
     // สร้างวัตถุเซนเซอร์พร้อมกำหนดความละเอียด (Precision) ตามของเดิม
@@ -204,7 +204,7 @@ void HA_Diagnostic()
     rssiSensor->setValue(String(rssiVal).c_str());
 
     // ปรับ Serial log ให้แสดงค่ารูปแบบใหม่
-    Serial.printf("[HA] Diag Update - Uptime: %s, RSSI: %d dBm\n", uptimeStr, rssiVal);
+    //Serial.printf("[HA] Diag Update - Uptime: %s, RSSI: %d dBm\n", uptimeStr, rssiVal);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -231,9 +231,9 @@ void iotHArun()
         iotHAsim();
     }
 
-    // อัปเดต Diagnostic ทุกๆ 30 วินาที (ตัวอย่าง)
+    // อัปเดต Diagnostic ทุกๆ 5 นาที (ตัวอย่าง)
     static unsigned long lastDiag = 0;
-    if (millis() - lastDiag > 30000)
+    if (millis() - lastDiag > 5*60*60)
     {
         lastDiag = millis();
         HA_Diagnostic();
