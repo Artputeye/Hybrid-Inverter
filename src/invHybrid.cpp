@@ -1,8 +1,6 @@
 #include "invHybrid.h"
 // ************************  invHybrid class  ************************
 // public:
-unsigned long lastRespons = 0;
-const unsigned long resInterval = 100;
 
 void invHybrid::begin()
 {
@@ -15,7 +13,7 @@ void invHybrid::executeCommand(String input)
 {
   input.trim();
   if (input.length() == 0)
-    return; 
+    return;
   Serial.print("Executing Command : ");
   Serial.println(input);
   sendCommand(input);
@@ -26,30 +24,75 @@ void invHybrid::executeCommand(String input)
 void invHybrid::Response()
 {
   unsigned long startTime = millis();
-  const unsigned long timeout = 500; 
-  while (Serial2.available() > 0 && millis() - startTime < timeout)
+  const unsigned long timeout = 1000; // Timeout 1000ms
+
+  while (millis() - startTime < timeout)
   {
-    invData = Serial2.readStringUntil('\n');
-    Serial.println("Inverter respond");
-    Serial.println(invData);
-    len = invData.length();
-    Serial.println("len: " + String(len));
-    if (len == 110)
+    if (Serial2.available() > 0)
     {
-      parseQPIGS(invData);
-      lastResponseTime = millis();
+      invData = Serial2.readStringUntil('\r');
+      invData.trim();
+
+      int lastParen = invData.lastIndexOf('(');
+      if (lastParen != -1)
+      {
+        invData = invData.substring(lastParen);
+      }
+
+      len = invData.length();
+
+      // ต้องขึ้นต้นด้วย '(' และข้อมูลต้องไม่สั้นเกินไป
+      if (invData.startsWith("(") && len > 3)
+      {
+        Serial.println("Inverter respond (" + lastSentCommand + "): " + invData);
+        Serial.println("len: " + String(len));
+
+        // แยกฟังก์ชัน Parse ตามคำสั่งที่ส่งออกไปล่าสุด
+        if (lastSentCommand == "QPIGS")
+        {
+          parseQPIGS(invData);
+          lastResponseTime = millis();
+          break;
+        }
+        else if (lastSentCommand == "QPIRI")
+        {
+          parseQPIRI(invData);
+          lastResponseTime = millis();
+          break;
+        }
+        else if (lastSentCommand == "QPIWS")
+        {
+          parseQPIWS(invData);
+          lastResponseTime = millis();
+          break;
+        }
+        else if (lastSentCommand == "QFLAG")
+        {
+          // หากมีฟังก์ชัน parseQFLAG(invData); ให้เรียกตรงนี้
+          lastResponseTime = millis();
+          break;
+        }
+        else if (lastSentCommand == "QDI")
+        {
+          // หากมีฟังก์ชัน parseQDI(invData); ให้เรียกตรงนี้
+          lastResponseTime = millis();
+          break;
+        }
+        else if (lastSentCommand == "QMOD")
+        {
+          // หากมีฟังก์ชัน parseQMOD(invData); ให้เรียกตรงนี้
+          lastResponseTime = millis();
+          break;
+        }
+      }
     }
-    if (len == 112)
-    {
-      parseQPIRI(invData);
-      lastResponseTime = millis();
-    }
-    if (len == 36)
-    {
-      parseQPIWS(invData);
-      lastResponseTime = millis();
-    }
-    vTaskDelay(10);
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+
+  // ล้าง Buffer ที่เหลือทิ้งหลังอ่านเสร็จ
+  while (Serial2.available() > 0)
+  {
+    Serial2.read();
   }
 }
 
@@ -107,7 +150,7 @@ void invHybrid::valueToinv(String Name, uint16_t val)
   }
 
   uint8_t frame[8];
-  auto it = InvAddress.find(Name); 
+  auto it = InvAddress.find(Name);
   if (it == InvAddress.end())
   {
     Serial.println("Register not found: " + Name);
@@ -131,76 +174,72 @@ void invHybrid::valueToinv(String Name, uint16_t val)
 
 void invHybrid::sendCommand(String data)
 {
+  // 🔴 1. ล้างขยะที่ค้างอยู่ใน Serial2 RX Buffer ให้หมดก่อนส่งคำสั่งใหม่ไป Inverter
+  while (Serial2.available() > 0)
+  {
+    Serial2.read();
+  }
+
+  // 🔴 2. บันทึกคำสั่งล่าสุดเพื่อเอาไว้เช็คในฟังก์ชัน Response()
+  lastSentCommand = data; 
+
   // erial.println("Sent in function sendCommand");
 
   // inquiry command to inverter
   // it will be calculated and added before send) // crc "\xB7\xA9" // CR "\x0D"
-  byte QPIGS[] = {0x51, 0x50, 0x49, 0x47, 0x53, 0xB7, 0xA9, 0x0D}; // len = 110 Device general status parameters inquiry (230.8 49.9 230.8 49.9 0830 0617 019 360 08.6  0 0 000 0032 00.0042.  00.00 00000 00010000 00 00 000 1 010�
-  byte QPIRI[] = {0X51, 0X50, 0X49, 0X52, 0X49, 0XF8, 0X54, 0x0D}; // len = 112 Device Rating Information inquiry (230.0 18.2 230.0 50.0 18.2 42 0 4200 24.0 23.0 20.028.2 27.0 0 002 060 0 1 1 1 01 0 0 29.0 0 1  3.0 10 22.0Y;
-  byte QFLAG[] = {0X51, 0X46, 0X4C, 0X41, 0X47, 0X98, 0X74, 0x0D}; // len = 18 Device flag status inquiry (EbuxzglDajkvyd�
-  byte QPIWS[] = {0X51, 0X50, 0X49, 0X57, 0X53, 0xB4, 0XDA, 0x0D}; // len = 36 DeviceWarning Status inquiry (000000000000001000000010000000 0t�
-  byte QDI[] = {0X51, 0X44, 0X49, 0x71, 0X1B, 0x0D};               // len = 85 The default setting value information (230.0  0.0 0030 21.0 27.0 28.223.0 50 0 0 2 0 0 00 0 1 1 1 0 1 0 27.  0 1 0 1 0Dk
-  byte QMOD[] = {0X51, 0X4D, 0X4F, 0X44, 0X49, 0XC1, 0x0D};        // len = 5 Device Mode inquiry (L�
+  byte QPIGS[] = {0x51, 0x50, 0x49, 0x47, 0x53, 0xB7, 0xA9, 0x0D}; // len = 110 Device general status parameters inquiry
+  byte QPIRI[] = {0X51, 0X50, 0X49, 0X52, 0X49, 0XF8, 0X54, 0x0D}; // len = 112 Device Rating Information inquiry
+  byte QFLAG[] = {0X51, 0X46, 0X4C, 0X41, 0X47, 0X98, 0X74, 0x0D}; // len = 18 Device flag status inquiry
+  byte QPIWS[] = {0X51, 0X50, 0X49, 0X57, 0X53, 0xB4, 0XDA, 0x0D}; // len = 36 DeviceWarning Status inquiry
+  byte QDI[]   = {0X51, 0X44, 0X49, 0x71, 0X1B, 0x0D};             // len = 85 The default setting value information
+  byte QMOD[]  = {0X51, 0X4D, 0X4F, 0X44, 0XC1, 0x0D};             // len = 5 Device Mode inquiry
   ////////////////////////////////////////////////////////////////////////
 
   // Inquiry to inverter
   if (data == "QPIGS") // Device general status parameters inquiry
   {
     Serial2.write(QPIGS, sizeof(QPIGS));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
   if (data == "QPIRI") // Device Rating Information inquiry
   {
     Serial2.write(QPIRI, sizeof(QPIRI));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
   if (data == "QFLAG") // Device flag status inquiry
   {
     Serial2.write(QFLAG, sizeof(QFLAG));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
   if (data == "QPIWS") // DeviceWarning Status inquiry
   {
     Serial2.write(QPIWS, sizeof(QPIWS));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
   if (data == "QDI") // The default setting value information
   {
     Serial2.write(QDI, sizeof(QDI));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
   if (data == "QMOD") // The default setting value information
   {
     Serial2.write(QMOD, sizeof(QMOD));
-    if (print)
-    {
-      sentinv(data);
-    }
+    if (print) { sentinv(data); }
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
-  // ESP Reset
+  // หน่วงเวลาเล็กน้อยให้ Inverter ประมวลผลก่อนอ่าน Response
+  if (data == "QPIGS" || data == "QPIRI" || data == "QFLAG" || data == "QPIWS" || data == "QDI" || data == "QMOD")
+  {
+    vTaskDelay(pdMS_TO_TICKS(50));
+  }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  // ESP Reset
   if (data == "espreset")
   {
     Serial.println("ESP Reset");
@@ -208,9 +247,8 @@ void invHybrid::sendCommand(String data)
     ESP.restart();
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
   // energy Reset
-
   if (data == "energy reset")
   {
     energy = true;
@@ -218,7 +256,7 @@ void invHybrid::sendCommand(String data)
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // Run mode
   if (data == "run mode")
   {
@@ -231,7 +269,7 @@ void invHybrid::sendCommand(String data)
     Serial.println("Stop mode");
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // wifi configuration
   if (data == "wifi mode 1")
   {
@@ -244,7 +282,7 @@ void invHybrid::sendCommand(String data)
     Serial.println("wifi mode 0");
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // ip configuration
   if (data == "ip mode 1")
   {
@@ -257,9 +295,8 @@ void invHybrid::sendCommand(String data)
     Serial.println("ip mode 0");
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // debug mode
-
   if (data == "debug1 on")
   {
     debug1 = true;
@@ -271,9 +308,8 @@ void invHybrid::sendCommand(String data)
     Serial.println("Debug1 mode off ");
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // Test mode
-
   if (data == "test on")
   {
     test = true;
@@ -285,9 +321,8 @@ void invHybrid::sendCommand(String data)
     Serial.println("test mode off");
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   // print mode
-
   if (data == "print on")
   {
     print = true;
@@ -299,56 +334,35 @@ void invHybrid::sendCommand(String data)
     Serial.println("print mode off");
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
   // reset wifi para
-
   if (data == "para res")
   {
     para = true;
     Serial.println("Resset setting");
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
   // read DIR SPIFFS
-
   if (data == "littleFS")
   {
     dir = true;
     Serial.println("read DIR SPIFFS");
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
   // Format SPIFFS
-
   if (data == "formatFS")
   {
     format = true;
     Serial.println("Format SPIFFS");
   }
 
-  /////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
   // Help
-
   if (data == "help")
   {
     help();
-  }
-
-  if ((millis() - lastRespons) > resInterval)
-  {
-    lastRespons = millis();
-
-    // บันทึกค่าความยาวก่อนเรียก Response เพื่อเอาไว้เช็กว่ามีข้อมูลใหม่เข้ามาจริงไหม
-    int oldLen = invData.length();
-
-    Response(); // เรียกตรวจสอบข้อมูลขาเข้า
-
-    // ถ้าค่า invData เปลี่ยนไป และไม่เป็นค่าว่าง แสดงว่าได้รับข้อมูลชุดใหม่เรียบร้อยแล้ว
-    if (invData.length() > 0 && invData.length() != oldLen)
-    {
-      // wsJsonInverter("Respond from inv.invData: " + inv.invData);
-      // wsJsonSerial(inv.serialData);
-    }
   }
 }
 
@@ -446,6 +460,7 @@ void invHybrid::parseQPIGS(String response)
   }
   data.powerFactor = roundf(data.powerFactor * 100) / 100.0;
   data.pvPower = data.pvCurrent * data.pvVoltage;
+  data.gridPower = data.ActivePower - data.pvPower;
 }
 
 void invHybrid::parseQPIRI(String response)

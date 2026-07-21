@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <PubSubClient.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <ArduinoHA.h>
@@ -30,8 +31,9 @@ extern invHybrid inv;
 
 // --- Global Objects (Extern) ---
 extern AsyncWebServer server;
-extern HADevice device;
-extern HAMqtt mqtt;
+extern WiFiClient espClient;
+extern PubSubClient client;
+
 extern File fsUploadFile;
 
 // --- Device Info ---
@@ -53,10 +55,10 @@ extern char SUBNET_MASK[16];
 extern char GATEWAY[16];
 
 // --- MQTT Settings ---
-extern char MQTT_ADDR[16];
+extern char MQTT_SERVER[16];
 extern char MQTT_USER[28];
 extern char MQTT_PASS[28];
-extern char MQTT_PORT[6];
+extern uint16_t MQTT_PORT ;
 
 // --- MAC : ADDRESS ---
 extern char MAC_RECEIVE[18];
@@ -85,7 +87,6 @@ extern String lastSerialMsg;
 #include "network_manager.h"
 #include "ota_update.h"
 #include "serial_handler.h"
-#include "simulate.h"
 #include "storage_manager.h"
 #include "time_sync.h"
 #include "ui_indicator.h"

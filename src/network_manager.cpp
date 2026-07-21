@@ -81,9 +81,6 @@ void mac_config()
     Serial.println();
     // ------------------------------------
 
-    // กำหนด Unique ID ให้ HADevice
-    device.setUniqueId(mac, sizeof(mac));
-
     // สร้าง String สำหรับเก็บ MAC Address ในรูปแบบข้อความ
     char tempMac[18];
     snprintf(tempMac, sizeof(tempMac), "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -167,10 +164,13 @@ void readNetworkConfig()
     strlcpy(SUBNET_MASK, doc["subnet_mask"] | "", sizeof(SUBNET_MASK));
     strlcpy(GATEWAY, doc["gateway"] | "", sizeof(GATEWAY));
 
-    strlcpy(MQTT_ADDR, doc["mqtt_server"] | "", sizeof(MQTT_ADDR));
+    // ...existing code...
+    strlcpy(MQTT_SERVER, doc["mqtt_server"] | "", sizeof(MQTT_SERVER));
     strlcpy(MQTT_USER, doc["mqtt_user"] | "", sizeof(MQTT_USER));
     strlcpy(MQTT_PASS, doc["mqtt_pass"] | "", sizeof(MQTT_PASS));
-    strlcpy(MQTT_PORT, doc["mqtt_port"] | "1883", sizeof(MQTT_PORT));
+    // -strlcpy(MQTT_PORT, doc["mqtt_port"] | "1883", sizeof(MQTT_PORT));
+    // +MQTT_PORT = atoi(doc["mqtt_port"] | "1883");
+    MQTT_PORT = atoi(doc["mqtt_port"] | "1883");
 
     // ================== DEBUG AFTER MAPPING ==================
     Serial.println(F("\n✅ Data Mapped Successfully:"));
@@ -185,10 +185,10 @@ void readNetworkConfig()
     Serial.printf(" SUBNET_MASK   : %s\n", SUBNET_MASK);
     Serial.printf(" GATEWAY       : %s\n", GATEWAY);
 
-    Serial.printf(" MQTT_SERVER   : %s\n", MQTT_ADDR);
+    Serial.printf(" MQTT_SERVER   : %s\n", MQTT_SERVER);
     Serial.printf(" MQTT_USER     : %s\n", MQTT_USER);
     Serial.printf(" MQTT_PASS     : %s\n", MQTT_PASS);
-    Serial.printf(" MQTT_PORT     : %s\n", MQTT_PORT);
+    Serial.printf(" MQTT_PORT     : %d\n", MQTT_PORT);
 
     // ================== MAC Parse ==================
     if (parseMacAddress(MAC_RECEIVE, MAC_RX))

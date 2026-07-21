@@ -17,7 +17,7 @@ unsigned long lastGridCheck = 0;
 unsigned long lastEnergy = 0;
 /////////////////////////////////////////////////////////////////////////////////
 const unsigned long qvalInterval = 5000;
-const unsigned long qrateInterval = 10000;
+const unsigned long qrateInterval = 19000;
 
 const unsigned long fileInterval = 15 * 60 * 1000; //record to file every 15 minutes
 const unsigned long gridOprInterval = 1000;
@@ -30,19 +30,34 @@ bool gridState = false;
 
 void gridRun()
 {
-    // 1. ส่วนส่งคำสั่งถามข้อมูล (Inquiry)
-    if ((millis() - lastQvalue) > qvalInterval) // ทุกๆ 5 วินาที
+    // 1. ถาม QPIGS (ทุก 5 วินาที)
+    if ((millis() - lastQvalue) > qvalInterval) 
     {
         lastQvalue = millis();
         if (inv.RunMode)
         {
             inv.sendCommand("QPIGS");
-            //Serial.println("Sent in function gridRun");
-            //wsJsonControll("Sent in function gridRun");
+            wsJsonSerial("Sent to inv: QPIGS");
+            inv.Response(); // เรียก Response ทันทีหลังจาก sendCommand
+            wsJsonInverter(inv.invData);      
+            wsJsonInverter(String(inv.invData.length()));       
         }
-        simulateData();
     }
 
+    // 2. ถาม QPIRI (ทุก 19 วินาที)
+    if ((millis() - lastQrate) > qrateInterval) 
+    {
+        lastQrate = millis();
+        if (inv.RunMode)
+        {
+            vTaskDelay(pdMS_TO_TICKS(200)); // 🔴 เว้นช่วง 200ms เผื่อรอบ QPIGS เพิ่งทำงานไป
+            inv.sendCommand("QPIRI");
+            wsJsonSerial("Sent to inv: QPIRI");
+            inv.Response();
+            wsJsonInverter(inv.invData);      
+            wsJsonInverter(String(inv.invData.length()));       
+        }
+    }
 }
 
 void gridOperation()
@@ -50,10 +65,6 @@ void gridOperation()
     unsigned long currentMillis = millis();
     float dt = (currentMillis - lastEnergy) / 1000.0;
     lastEnergy = currentMillis;
-
-    float outputPower = inv.data.ActivePower;
-    float pvPower = inv.data.pvPower;
-    gridPower = outputPower - pvPower;
 
     static bool clearedToday = false;
     if (rtc.hour == 18 && rtc.minute == 0 && !clearedToday)
@@ -81,7 +92,7 @@ void gridOperation()
         clearedToday = false;
     }
 
-    energy_kWh += ((gridPower * dt) / 3600000.0);
+    energy_kWh += ((inv.data.gridPower * dt) / 3600000.0);
 
     if (millis() - lastGridOpr > gridOprInterval) // debug grid operation
     {

@@ -1,15 +1,14 @@
 // main.cpp
 #include "config.h"
 
-WiFiClient client;
-HADevice device;
-HAMqtt mqtt(client, device);
-
 // --- Function Prototypes ---
 void TaskMain(void *pvParameters);
 void TaskSub(void *pvParameters);
 void TaskLED(void *pvParameters);
 void TaskSerialReader(void *pvParameters);
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void setup()
 {
@@ -38,7 +37,7 @@ void setup()
     network_setup();
     delay(500);
 
-    if (isWifiApMode == 1 && WiFi.status() == WL_CONNECTED)
+    if (WiFi.status() == WL_CONNECTED)
     {
         iotHAsetup();
         NTPbegin();
@@ -108,7 +107,7 @@ void TaskSub(void *pvParameters)
     for (;;)
     {
         esp_task_wdt_reset();
-        iotHArun();
+        iotHAloop();
         wsProcess();
         apModeCheck();
         keepWiFiAlive();

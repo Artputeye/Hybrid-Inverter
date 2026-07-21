@@ -9,6 +9,7 @@ void app_setup()
   delay(500);
   initEnergyTracker();
   delay(500);
+
 }
 
 void app_loop()

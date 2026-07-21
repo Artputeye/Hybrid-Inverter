@@ -24,7 +24,7 @@ String wsAllDataBase64()
     ///////////////////////Monotor////////////////////////////////
     doc["Load Percent"] = inv.data.loadPercent;
     doc["Energy Daily"] = String(energy_kWh, 3);
-    doc["Grid Power"] = gridPower;
+    doc["Grid Power"] = inv.data.gridPower;
     doc["Output Apparent Power"] = inv.data.ApparentPower;
     doc["Output Active Power"] = inv.data.ActivePower;
     doc["Output Voltage"] = inv.data.outputVoltage;

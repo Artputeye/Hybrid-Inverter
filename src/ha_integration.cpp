@@ -1,241 +1,196 @@
-// ha_integration.cpp
 #include "ha_integration.h"
 
-// --- Diagnostic Entities Pointer ---
-HASensor *ipAddrSensor = nullptr;
-HASensor *macAddrSensor = nullptr;
-HASensor *uptimeSensor = nullptr;
-HASensor *rssiSensor = nullptr;
+const char *device_id = "esp32_hybrid_inverter"; // Unique ID for the device
+const char *discovery_prefix = "homeassistant";
+const char *availability_topic = "homeassistant/sensor/hybrid_inverter/availability";
+const char *state_topic = "homeassistant/sensor/hybrid_inverter/state";
 
-// --- Switch Object Pointer ---
-HASwitch *grid = nullptr;
-
-// --- Sensor Object Pointer ---
-HASensorNumber *LoadPercent = nullptr;
-HASensorNumber *EnergyDaily = nullptr;
-HASensorNumber *GridPower = nullptr;
-HASensorNumber *ActivePower = nullptr;
-HASensorNumber *ApparentPower = nullptr;
-HASensorNumber *OutputVolt = nullptr;
-HASensorNumber *OutputCurrent = nullptr;
-HASensorNumber *OutputFrequency = nullptr;
-HASensorNumber *PowerFactor = nullptr;
-HASensorNumber *pvPower = nullptr;
-HASensorNumber *pvCurrent = nullptr;
-HASensorNumber *pvVoltage = nullptr;
-HASensorNumber *BusVoltage = nullptr;
-HASensorNumber *BattVoltage = nullptr;
-HASensorNumber *Temp = nullptr;
+unsigned long lastMsg = 0;
 
 void iotHAsetup()
 {
-    Serial.println(F("[HA] Initializing Device Details..."));
 
-    // 1. ตั้งค่าข้อมูลพื้นฐานของอุปกรณ์
-    device.setName(DEVICE_NAME);
-    device.setSoftwareVersion(D_SoftwareVersion);
-    device.setManufacturer(D_Mfac);
-    device.setModel(D_Model);
-
-    // 2. สร้างและตั้งค่า Diagnostic Entities
-// --- IP Address ---
-    ipAddrSensor = new HASensor("ip_address");
-    ipAddrSensor->setName("IP Address");
-    ipAddrSensor->setIcon("mdi:ip-network");
-
-    // --- MAC Address ---
-    macAddrSensor = new HASensor("mac_address");
-    macAddrSensor->setName("MAC Address");
-    macAddrSensor->setIcon("mdi:lan-connect");
-    //macAddrSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
-
-    // --- Uptime ---
-    uptimeSensor = new HASensor("uptime");
-    uptimeSensor->setName("Uptime");
-    uptimeSensor->setIcon("mdi:clock");
-    //uptimeSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
-
-    // --- WiFi Signal ---
-    rssiSensor = new HASensor("rssi");
-    rssiSensor->setName("WiFi Signal");
-    rssiSensor->setUnitOfMeasurement("dBm");
-    rssiSensor->setDeviceClass("signal_strength");
-    //rssiSensor->setCategory("diagnostic"); // ✨ เปลี่ยนเป็นตัวนี้แทนครับ
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // สร้างวัตถุเซนเซอร์พร้อมกำหนดความละเอียด (Precision) ตามของเดิม
-    LoadPercent = new HASensorNumber("LoadPercent");
-    LoadPercent->setName("Load Percent");
-    LoadPercent->setIcon("mdi:ticket-percent");
-    LoadPercent->setUnitOfMeasurement("%");
-
-    EnergyDaily = new HASensorNumber("EnergyDaily", HASensorNumber::PrecisionP3);
-    EnergyDaily->setName("Energy Daily");
-    EnergyDaily->setIcon("mdi:meter-electric");
-    EnergyDaily->setUnitOfMeasurement("kWh");
-
-    GridPower = new HASensorNumber("GridPower");
-    GridPower->setName("Grid Power");
-    GridPower->setIcon("mdi:transmission-tower");
-    GridPower->setUnitOfMeasurement("W");
-
-    ActivePower = new HASensorNumber("ActivePower");
-    ActivePower->setName("Active Power");
-    ActivePower->setIcon("mdi:transmission-tower");
-    ActivePower->setUnitOfMeasurement("W");
-
-    ApparentPower = new HASensorNumber("ApparentPower");
-    ApparentPower->setName("Apparent Power");
-    ApparentPower->setIcon("mdi:transmission-tower");
-    ApparentPower->setUnitOfMeasurement("VA");
-
-    OutputVolt = new HASensorNumber("OutputVolt", HASensorNumber::PrecisionP1);
-    OutputVolt->setName("Output Voltage");
-    OutputVolt->setIcon("mdi:flash-triangle");
-    OutputVolt->setUnitOfMeasurement("V");
-
-    OutputCurrent = new HASensorNumber("OutputCurrent", HASensorNumber::PrecisionP1);
-    OutputCurrent->setName("Output Current");
-    OutputCurrent->setIcon("mdi:current-ac");
-    OutputCurrent->setUnitOfMeasurement("A");
-
-    OutputFrequency = new HASensorNumber("OutputFrequency", HASensorNumber::PrecisionP1);
-    OutputFrequency->setName("Output Frequency");
-    OutputFrequency->setIcon("mdi:sine-wave");
-    OutputFrequency->setUnitOfMeasurement("Hz");
-
-    PowerFactor = new HASensorNumber("PowerFactor", HASensorNumber::PrecisionP2);
-    PowerFactor->setName("Power Factor");
-    PowerFactor->setIcon("mdi:angle-acute");
-
-    pvPower = new HASensorNumber("pvPower", HASensorNumber::PrecisionP1);
-    pvPower->setName("PV Power");
-    pvPower->setIcon("mdi:transmission-tower-import");
-    pvPower->setUnitOfMeasurement("W");
-
-    pvCurrent = new HASensorNumber("pvCurrent", HASensorNumber::PrecisionP1);
-    pvCurrent->setName("pvCurrent");
-    pvCurrent->setIcon("mdi:current-dc");
-    pvCurrent->setUnitOfMeasurement("A");
-
-    pvVoltage = new HASensorNumber("pvVoltage", HASensorNumber::PrecisionP1);
-    pvVoltage->setName("PV Voltage");
-    pvVoltage->setIcon("mdi:flash-triangle");
-    pvVoltage->setUnitOfMeasurement("V");
-
-    BusVoltage = new HASensorNumber("BusVoltage");
-    BusVoltage->setName("Bus Voltage");
-    BusVoltage->setIcon("mdi:flash-triangle");
-    BusVoltage->setUnitOfMeasurement("V");
-
-    BattVoltage = new HASensorNumber("BattVoltage", HASensorNumber::PrecisionP1);
-    BattVoltage->setName("Battery Voltage");
-    BattVoltage->setIcon("mdi:flash-triangle");
-    BattVoltage->setUnitOfMeasurement("V");
-
-    Temp = new HASensorNumber("Temp");
-    Temp->setName("Temperature");
-    Temp->setIcon("mdi:thermometer");
-    Temp->setUnitOfMeasurement("°C");
-
-    // 4. เตรียมการเชื่อมต่อ MQTT
-    uint16_t port = (uint16_t)atoi(MQTT_PORT);
-    IPAddress mqttIP;
-
-    if (mqttIP.fromString(MQTT_ADDR))
-    {
-        Serial.printf("[HA] Connecting to MQTT: %s:%d\n", MQTT_ADDR, port);
-        mqtt.begin(mqttIP, port, MQTT_USER, MQTT_PASS);
-    }
-    else
-    {
-        Serial.println(F("❌ [HA] Invalid MQTT IP Address"));
-    }
+  client.setServer(MQTT_SERVER, MQTT_PORT);
+  client.setBufferSize(4096);
+  client.setKeepAlive(60);
+  client.setSocketTimeout(60);
 }
 
-void iotHAsim()
+void iotHAloop()
 {
-    // ตรวจสอบความปลอดภัยว่า Pointer ถูกจองเนื้อที่แล้ว และไม่อยู่ในโหมดทดสอบ
-    if (LoadPercent != nullptr && !inv.test)
-    {
-        LoadPercent->setValue(inv.data.loadPercent);
-        EnergyDaily->setValue(energy_kWh);
-        GridPower->setValue(gridPower);
-        ActivePower->setValue(inv.data.ActivePower);
-        ApparentPower->setValue(inv.data.ApparentPower);
-        OutputVolt->setValue(inv.data.outputVoltage);
-        OutputCurrent->setValue(inv.data.outputCurrent);
-        OutputFrequency->setValue(inv.data.outputFrequency);
-        PowerFactor->setValue(inv.data.powerFactor);
-        pvPower->setValue(inv.data.pvPower);
-        pvCurrent->setValue(inv.data.pvCurrent);
-        pvVoltage->setValue(inv.data.pvVoltage);
-        BusVoltage->setValue(inv.data.busVoltage);
-        BattVoltage->setValue(inv.data.batteryVoltage);
-        Temp->setValue(inv.data.temp);
-    }
+  if (!client.connected())
+  {
+    reconnect();
+  }
+  client.loop();
+
+  // อัปเดตข้อมูลส่งไป HA ทุกๆ 10 วินาที
+  unsigned long now = millis();
+  if (now - lastMsg > 10000)
+  {
+    lastMsg = now;
+    publish_all_states();
+  }
 }
 
-void HA_Diagnostic()
+// ฟังก์ชันศูนย์กลางในการทำ MQTT Discovery ของเซนเซอร์แต่ละตัว
+void send_sensor_config(const char *object_id, const char *name, const char *unit, const char *device_class, const char *icon, const char *category)
 {
-    // ตรวจสอบตัวใดตัวหนึ่งในกลุ่ม Diagnostic เพื่อป้องกัน nullptr crash
-    if (ipAddrSensor == nullptr)
-        return;
+  String config_topic = String(discovery_prefix) + "/sensor/" + device_id + "/" + object_id + "/config";
 
-    // 1. IP และ MAC
-    ipAddrSensor->setValue(WiFi.localIP().toString().c_str());
-    macAddrSensor->setValue(MacAddr.c_str());
+  JsonDocument doc;
+  doc["name"] = name;
+  doc["state_topic"] = state_topic;
 
-    // 2. Uptime (แปลงจาก millis เป็น dd:hh:mm)
-    uint32_t totalSeconds = millis() / 1000;
+  // ใช้ดึงค่าตัวแปรจาก JSON ก้อนรวมด้วย value_template
+  String value_template = String("{{ value_json.") + object_id + " }}";
+  doc["value_template"] = value_template.c_str();
 
-    uint32_t days = totalSeconds / 86400;
-    uint32_t hours = (totalSeconds % 86400) / 3600;
-    uint32_t minutes = (totalSeconds % 3600) / 60;
+  String unique_id = String(device_id) + "_" + object_id;
+  doc["unique_id"] = unique_id.c_str();
 
-    // จัดฟอร์แมตให้อยู่ในรูป dd:hh:mm (ใส่ %02u เพื่อให้มีเลข 0 นำหน้ากรณีเป็นเลขหลักเดียว)
-    char uptimeStr[16];
-    snprintf(uptimeStr, sizeof(uptimeStr), "%02u:%02u:%02u", days, hours, minutes);
+  if (unit && strlen(unit) > 0)
+    doc["unit_of_measurement"] = unit;
+  if (device_class && strlen(device_class) > 0)
+    doc["device_class"] = device_class;
+  if (icon && strlen(icon) > 0)
+    doc["icon"] = icon;
+  if (category && strlen(category) > 0)
+    doc["entity_category"] = category;
 
-    uptimeSensor->setValue(uptimeStr);
+  // การตั้งค่าความพร้อมใช้งาน (Availability)
 
-    // 3. RSSI
-    int8_t rssiVal = WiFi.RSSI();
-    rssiSensor->setValue(String(rssiVal).c_str());
+  doc["availability_topic"] = availability_topic;
+  doc["payload_available"] = "online";
+  doc["payload_not_available"] = "offline";
 
-    // ปรับ Serial log ให้แสดงค่ารูปแบบใหม่
-    //Serial.printf("[HA] Diag Update - Uptime: %s, RSSI: %d dBm\n", uptimeStr, rssiVal);
+  // โครงสร้างหลักของตัวอุปกรณ์ (Device)
+  JsonObject dev = doc["device"].to<JsonObject>();
+  JsonArray ids = dev["identifiers"].to<JsonArray>();
+  ids.add(device_id);
+  dev["name"] = DEVICE_NAME;
+  dev["sw_version"] = D_SoftwareVersion;
+  dev["manufacturer"] = D_Mfac;
+  dev["model"] = D_Model;
+
+  char buffer[1024];
+  serializeJson(doc, buffer, sizeof(buffer));
+  Serial.print("Publishing discovery: ");
+  Serial.println(config_topic);
+  client.publish(config_topic.c_str(), buffer, true);
+  client.loop();
+  vTaskDelay(50);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-// sent switch command to inverter
-void GridTie(bool state, HASwitch *sender)
+void send_ha_discovery()
 {
-    sender->setState(state); // report state back to the Home Assistant
-    if (state)
-    {
-        inv.valueToinv("GridTieOperation", 1);
-    }
-    if (!state)
-    {
-        inv.valueToinv("GridTieOperation", 0);
-    }
+  Serial.println("Sending HA Discovery Configurations...");
+
+  // 1. กลุ่ม Diagnostic Entities (ใส่หมวดหมู่เป็น "diagnostic")
+  send_sensor_config("ip_address", "IP Address", "", "", "mdi:ip-network", "diagnostic");
+  send_sensor_config("mac_address", "MAC Address", "", "", "mdi:lan-connect", "diagnostic");
+  send_sensor_config("uptime", "Uptime", "", "timestamp", "mdi:clock", "diagnostic");
+  send_sensor_config("rssi", "WiFi Signal", "dBm", "signal_strength", "mdi:clock", "diagnostic");
+
+  // 2. กลุ่มเซนเซอร์วัดค่าพลังงานและอื่นๆ (เซนเซอร์หลักไม่ระบุ category)
+  send_sensor_config("LoadPercent", "Load Percent", "%", "", "mdi:ticket-percent", "");
+  send_sensor_config("EnergyDaily", "Energy Daily", "kWh", "energy", "mdi:meter-electric", "");
+  send_sensor_config("GridPower", "Grid Power", "W", "power", "mdi:transmission-tower", "");
+  send_sensor_config("ActivePower", "Active Power", "W", "power", "mdi:transmission-tower", "");
+  send_sensor_config("ApparentPower", "Apparent Power", "VA", "apparent_power", "mdi:transmission-tower", "");
+  send_sensor_config("OutputVolt", "Output Voltage", "V", "voltage", "mdi:flash-triangle", "");
+  send_sensor_config("OutputCurrent", "Output Current", "A", "current", "mdi:current-ac", "");
+  send_sensor_config("OutputFrequency", "Output Frequency", "Hz", "frequency", "mdi:sine-wave", "");
+  send_sensor_config("PowerFactor", "Power Factor", "", "power_factor", "mdi:angle-acute", "");
+  send_sensor_config("pvPower", "PV Power", "W", "power", "mdi:transmission-tower-import", "");
+  send_sensor_config("pvCurrent", "PV Current", "A", "current", "mdi:current-dc", "");
+  send_sensor_config("pvVoltage", "PV Voltage", "V", "voltage", "mdi:flash-triangle", "");
+  send_sensor_config("BusVoltage", "Bus Voltage", "V", "voltage", "mdi:flash-triangle", "");
+  send_sensor_config("BattVoltage", "Battery Voltage", "V", "voltage", "mdi:flash-triangle", "");
+  send_sensor_config("Temp", "Temperature", "°C", "temperature", "mdi:thermometer", "");
+
+  Serial.println("All HA Discovery Configs sent!");
 }
 
-void iotHArun()
+// ฟังก์ชันเก็บรวบรวมค่าปัจจุบันทั้งหมดแล้วส่งออกไปยัง HA
+void publish_all_states()
 {
-    // ฟังก์ชันนี้ต้องถูกเรียกใน loop() หลักของโปรแกรม
-    if (isWifiApMode == 1 && WiFi.status() == WL_CONNECTED)
-    {
-        mqtt.loop(); // Or whatever your MQTT client instance loop is called
-        iotHAsim();
-    }
+  JsonDocument doc;
 
-    // อัปเดต Diagnostic ทุกๆ 5 นาที (ตัวอย่าง)
-    static unsigned long lastDiag = 0;
-    if (millis() - lastDiag > 5*60*60)
-    {
-        lastDiag = millis();
-        HA_Diagnostic();
+  // --- ดึงค่าฝั่ง Network/Diagnostics ---
+  doc["ip_address"] = WiFi.localIP().toString();
+  doc["mac_address"] = WiFi.macAddress();
+  doc["rssi"] = WiFi.RSSI();
+
+  // --- คำนวณ Uptime (Timestamp) ---
+  time_t nowSec;
+  time(&nowSec);
+
+  // เช็คว่า NTP ซิงค์เวลาปัจจุบันได้แล้วหรือยัง (1577836800 = 1 Jan 2020)
+  if (nowSec > 1577836800)
+  {
+    time_t bootTime = nowSec - (millis() / 1000);
+    char bootTimeStr[25];
+    struct tm *timeinfo = gmtime(&bootTime);
+    strftime(bootTimeStr, sizeof(bootTimeStr), "%Y-%m-%dT%H:%M:%SZ", timeinfo);
+
+    doc["uptime"] = bootTimeStr; // ตัวอย่าง: "2026-07-20T10:00:00Z"
+  }
+
+  // --- ดึงค่าฝั่ง Inverter ---
+  doc["LoadPercent"] = inv.data.loadPercent;
+  doc["EnergyDaily"] = energy_kWh;
+  doc["GridPower"] = inv.data.gridPower;
+  doc["ActivePower"] = inv.data.ActivePower;
+  doc["ApparentPower"] = inv.data.ApparentPower;
+  doc["OutputVolt"] = inv.data.outputVoltage;
+  doc["OutputCurrent"] = inv.data.outputCurrent;
+  doc["OutputFrequency"] = inv.data.outputFrequency;
+  doc["PowerFactor"] = inv.data.powerFactor;
+  doc["pvPower"] = inv.data.pvPower;
+  doc["pvCurrent"] = inv.data.pvCurrent;
+  doc["pvVoltage"] = inv.data.pvVoltage;
+  doc["BusVoltage"] = inv.data.busVoltage;
+  doc["BattVoltage"] = inv.data.batteryVoltage;
+  doc["Temp"] = inv.data.temp;
+
+  char buffer[1024];
+  serializeJson(doc, buffer, sizeof(buffer));
+
+  // ส่งข่าวก้อนข้อมูลหลัก และ ยืนยันสถานะออนไลน์
+  client.publish(state_topic, buffer, true);
+  client.publish(availability_topic, "online", true);
+  client.loop();
+  vTaskDelay(100);
+  // Serial.print("Published Data: ");
+  // Serial.println(buffer);
+}
+
+void reconnect()
+{
+  static unsigned long lastReconnectAttempt = 0;
+  unsigned long now = millis();
+
+  if (!client.connected())
+  {
+    if (now - lastReconnectAttempt > 5000)
+    { // พยายามเชื่อมต่อทุกๆ 5 วินาที
+      lastReconnectAttempt = now;
+      Serial.print("Attempting MQTT connection...");
+
+      if (client.connect(DEVICE_NAME, MQTT_USER, MQTT_PASS, availability_topic, 0, true, "offline"))
+      {
+        Serial.println("connected");
+        send_ha_discovery();
+        client.publish(availability_topic, "online", true);
+        publish_all_states();
+      }
+      else
+      {
+        Serial.print("failed, rc=");
+        Serial.print(client.state());
+        Serial.println(" try again in 5 seconds");
+      }
     }
+  }
 }
