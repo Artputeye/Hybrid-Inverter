@@ -10,12 +10,12 @@ class invHybrid
 {
 public:
   /***************************************** public variable********************************/
-  
+
   String invData;
   String serialData;
   String faultList;
   String lastSentCommand = "";
-  
+
   unsigned int len;
   unsigned long lastResponseTime = 0;
 
@@ -25,6 +25,7 @@ public:
   bool print = false;  // serail print data //
   bool para = false;   // parameter reste
   bool format = false; // fomat littleFS //parameterData.cpp
+  bool energyreset = false; // energy reset //parameterData.cpp
   bool dir = false;    // dir littleFS //parameterData.cpp
   bool RunMode = true; // auto mode //main.cpp, wifiConfig.cpp
   bool wifi_config = false;
@@ -70,31 +71,33 @@ public:
   // Structure to store the data for QPIGS
   struct QPIGSVals_t
   {
-    float gridPower;         // 1
-    float gridVoltage;       // 2
-    float gridFrequency;     // 3
-    float outputVoltage;     // 4
-    float outputFrequency;   // 5
-    uint32_t ApparentPower;  // 6
-    uint32_t ActivePower;    // 7
-    uint32_t loadPercent;    // 8
-    uint32_t busVoltage;     // 9
-    float batteryVoltage;    // 10
-    uint32_t unknow9;        // 11
-    uint32_t unknow10;       // 12
-    uint32_t temp;           // 13
-    float pvCurrent;         // 14
-    float pvVoltage;         // 15
-    float unknow14;          // 16
-    uint32_t unknow15;       // 17
-    uint32_t InverterStatus; // 18
-    uint32_t unknow17;       // 19
-    uint32_t unknow18;       // 20
-    uint32_t unknow19;       // 21
-    uint32_t unknow20;       // 22
-    float outputCurrent;       // 23
-    float powerFactor;        // 24
-    uint32_t pvPower;         // 25
+    float gridVoltage;
+    float gridFrequency;
+    float outputVoltage;
+    float outputFrequency;
+    uint32_t ApparentPower;
+    uint32_t ActivePower;
+    uint32_t loadPercent;
+    uint32_t busVoltage;
+    float batteryVoltage;
+    uint32_t unknow9;
+    uint32_t unknow10;
+    uint32_t temp;
+    float pvCurrent;
+    float pvVoltage;
+    float unknow14;
+    uint32_t unknow15;
+    uint32_t InverterStatus;
+    uint32_t unknow17;
+    uint32_t unknow18;
+    uint32_t unknow19;
+    uint32_t unknow20;
+
+    // 🔴 เปลี่ยนชนิดตัวแปรตรงนี้เป็น float เพื่อรองรับทศนิยมและค่าติดลบ
+    float outputCurrent;
+    float powerFactor;
+    float pvPower;
+    float gridPower;
   } data;
 
   struct QPIRIvals_t // Device Rating Information inquiry
@@ -153,7 +156,7 @@ private:
   /***************************************** private function *******************************/
   void parseQPIGS(String response);
   void parseQPIRI(String response);
-  void parseQPIWS(const String& resp);
+  void parseQPIWS(const String &resp);
   void sentinv(String data);
   void help();
 };

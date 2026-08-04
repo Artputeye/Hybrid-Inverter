@@ -1,206 +1,114 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. ดึงค่าคอนฟิกเริ่มต้นจาก Server
   fetch('/setting.json')
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-      // ✅ โหลดค่ากลับให้ select
-      for (const key in data) {
-        const selectElement = document.getElementById(key);
-        if (selectElement && selectElement.tagName === "SELECT") {
-          const valueToSelect = data[key];
-          for (const option of selectElement.options) {
-            if (option.value.toLowerCase() === valueToSelect.toLowerCase()) {
-              selectElement.value = option.value;
-              break;
-            }
-          }
-        }
-      }
+      console.log("📥 [RESTORE] Loaded settings from /setting.json:", data);
+      
+      // Restore Select, Checkbox, Number
+      Object.keys(data).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.tagName === "SELECT") el.value = data[id];
+        else if (el.type === "checkbox") el.checked = data[id] === "1" || data[id] === 1;
+        else if (el.type === "number") el.value = data[id];
+      });
 
-      // ✅ โหลดค่ากลับให้ checkbox
-      for (const key in data) {
-        const checkbox = document.getElementById(key);
-        if (checkbox && checkbox.type === "checkbox") {
-          checkbox.checked = data[key] === "1";
-        }
-      }
-
-      // ✅ โหลดค่ากลับให้ input number (gridCutOff, gridStart)
-      for (const key in data) {
-        const numberInput = document.getElementById(key);
-        if (numberInput && numberInput.type === "number") {
-          numberInput.value = data[key];
-        }
-      }
-
-      // ✅ เพิ่มส่วนตรวจสอบ Grid Tie Auto
+      // Update UI State สำหรับ Grid Tie Auto
       const gridTieAuto = document.getElementById("Grid Tie Auto");
-      const gridTieOp = document.getElementById("Grid Tie Operation");
-      if (gridTieAuto && gridTieOp) {
-        const autoEnabled = data["Grid Tie Auto"] === "1";
-        gridTieOp.disabled = autoEnabled; // ปิดการใช้งานปุ่มเมื่อ auto = 1
-        gridTieOp.parentElement.classList.toggle("disabled", autoEnabled);
-      }
+      if (gridTieAuto) updateGridTieUI(gridTieAuto.checked);
     })
-    .catch(error => {
-      console.error("Error fetching toggle data:", error);
-    });
+    .catch(err => console.error("❌ [RESTORE ERROR] Fetching settings:", err));
 });
 
+// Helper สำหรับส่ง JSON ไปยัง Endpoints ต่างๆ พร้อม Console Log
+async function postJSON(url, payload) {
+  // 🔍 LOG: แสดงข้อมูลที่จะส่งออกไปหา Server
+  console.log(`📤 [POST REQUEST] Destination: ${url}`);
+  console.log("📦 [PAYLOAD DATA]:", payload);
+  console.log("📄 [JSON STRING]:", JSON.stringify(payload));
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const responseText = await res.text();
+    console.log(`✅ [RESPONSE] Status: ${res.status} | Body:`, responseText);
+    return responseText;
+  } catch (err) {
+    console.error(`❌ [FETCH ERROR] (${url}):`, err);
+  }
+}
+
+// ฟังก์ชันหลักสำหรับส่ง Setting ไปหา ESP32
+function sendSetting(element) {
+  const container = element.closest('.setting-dropdown, .card-main');
+  if (!container) return;
+
+  const settingType = container.getAttribute('data-setting') || element.id;
+  const inputEl = container.querySelector('select, input');
+  if (!inputEl) return;
+
+  // แปลงเป็น Number เสมอ
+  const numericValue = parseInt(inputEl.value, 10);
+  const finalValue = isNaN(numericValue) ? 0 : numericValue;
+
+  console.log(`🔘 [ACTION] Output Priority / Single Setting Change triggered`);
+
+  postJSON('/invsetting', {
+    setting: settingType,
+    value: finalValue
+  }).then(() => {
+    submitAllSettings();
+  });
+}
+
+// ฟังก์ชันสำหรับ Toggle Checkbox
 function toggleSetting(checkbox, settingName) {
   const status = checkbox.checked ? 1 : 0;
-  console.log(`${settingName} ${status}`);
 
-  // ✅ ถ้าเป็น Grid Tie Auto → ปิด/เปิดการใช้งานปุ่ม Grid Tie Operation
+  console.log(`🔘 [ACTION] Toggle Switch: ${settingName} -> ${status}`);
+
   if (settingName === "Grid Tie Auto") {
-    const gridTieOp = document.getElementById("Grid Tie Operation");
-    if (gridTieOp) {
-      gridTieOp.disabled = checkbox.checked;
-      gridTieOp.parentElement.classList.toggle("disabled", checkbox.checked);
-    }
+    updateGridTieUI(checkbox.checked);
   }
-  settingToserver(settingName, status);
+
+  postJSON('/invsetting', {
+    setting: settingName,
+    value: status
+  }).then(() => submitAllSettings());
 }
 
-// ส่งค่า Toggle ไปยังเซิร์ฟเวอร์
-function settingToserver(settingName, state) {
-  console.log(`${settingName} has been toggled to ${state}`);
+// ฟังก์ชันส่ง Grid Cutoff & Start พร้อมกัน
+function GridCutToServer() {
+  const gridCutOff = parseInt(document.getElementById("gridCutOff")?.value, 10) || 0;
+  const gridStart = parseInt(document.getElementById("gridStart")?.value, 10) || 0;
 
-  fetch('/invsetting', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      setting: settingName,   // ✅ ไม่มีเลขติดชื่อ
-      value: state
-    }),
-  })
-    .then(response => response.text())
-    .then(result => {
-      console.log(`✅ Toggle ${settingName} updated to ${state}`);
-      console.log("Respond:", result);
-    })
-    .catch(error => {
-      console.error("❌ Error:", error);
-    });
+  console.log(`🔘 [ACTION] Grid Cutoff / Start Setting triggered`);
 
-  submitAllSettings();
+  postJSON('/invsetting', {
+    gridCutOff: gridCutOff,
+    gridStart: gridStart
+  }).then(() => submitAllSettings());
 }
 
-//ส่งค่า dropdown ไปยังเซิร์ฟเวอร์
-function sendSetting(data) {
-  const container = data.closest('.setting-dropdown');
-  const settingType = container.getAttribute('data-setting');
-  const value = container.querySelector('select').value;
-
-  fetch('/invsetting', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ setting: settingType, value }),
-  })
-    .then(response => response.text())
-    .then(data => {
-      console.log(`✅ Setting ${settingType} updated to ${value}`);
-    })
-    .catch(error => {
-      console.error('❌ Error:', error);
-    });
-  submitAllSettings();
+function updateGridTieUI(isAuto) {
+  const gridTieOp = document.getElementById("Grid Tie Operation");
+  if (gridTieOp) {
+    gridTieOp.disabled = isAuto;
+    gridTieOp.parentElement.classList.toggle("disabled", isAuto);
+  }
 }
 
+// บันทึกสถานะรวมลง /setting.json
 function submitAllSettings() {
   const data = {};
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.id && (data[el.id] = el.checked ? "1" : "0"));
+  document.querySelectorAll('input[type="number"]').forEach(el => el.id && (data[el.id] = el.value));
+  document.querySelectorAll('select').forEach(el => el.id && (data[el.id] = el.value));
 
-  // เก็บค่าจาก toggle switch ทั้งหมด
-  document.querySelectorAll('input[type="checkbox"]').forEach(input => {
-    const id = input.id;
-    if (id) {
-      data[id] = input.checked ? "1" : "0";
-    }
-  });
-
-  // เก็บค่าจาก input ทั้งหมด
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-    const id = input.id;
-    if (id) {
-      data[id] = input.value;
-    }
-  });
-
-  // เก็บค่าจาก dropdown ทั้งหมด
-  document.querySelectorAll('select').forEach(select => {
-    const id = select.id;
-    if (id) {
-      data[id] = select.value;   // <-- ใช้ value ไม่ใช่ text
-    }
-  });
-
-  console.log("Successed:", data);
-
-  // ส่ง JSON ไปยัง ESP32
-  fetch('/setting.json', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-    .then(response => response.text())
-    .then(result => {
-      console.log("Successed:", result);
-    })
-    .catch(error => {
-      console.error("Error:", error);
-    });
-}
-
-function restoreDefaults() {
-  console.log("⚠️ Restoring defaults...");
-
-  // รีเซ็ต dropdown → ค่าแรก
-  document.querySelectorAll('select').forEach(select => {
-    if (select.options.length > 0) {
-      select.selectedIndex = 0;
-    }
-  });
-
-  // รีเซ็ต toggle switch → 0
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-    cb.checked = false;
-  });
-
-  // ส่งค่าที่รีเซ็ตไปยัง ESP32
-  settingToserver("RestoreDefaults", 1)
-  submitAllSettings();
-  alert("✅ Settings restored to defaults.");
-}
-
-
-function GridCutToServer() {
-  const gridCutOff = parseInt(document.getElementById('gridCutOff').value);
-  const gridStart = parseInt(document.getElementById('gridStart').value);
-
-  // ✅ ตรวจสอบว่าค่าถูกต้องและอยู่ในช่วง 1–31
-  if (isNaN(gridCutOff) || isNaN(gridStart)) {
-    alert('กรุณากรอกค่าทั้งสองช่อง');
-    return;
-  }
-  if (gridCutOff < 1 || gridCutOff > 31 || gridStart < 1 || gridStart > 31) {
-    alert('ค่าต้องอยู่ระหว่าง 1 ถึง 31 เท่านั้น');
-    return;
-  }
-  console.log(`📤 ส่งค่าไป server: gridCutOff=${gridCutOff}, gridStart=${gridStart}`);
-  fetch('/invsetting', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ gridCutOff, gridStart })
-  })
-    .then(res => res.text())
-    .then(result => {
-      console.log('✅ Respond:', result);
-      alert('บันทึกค่าเรียบร้อย');
-    })
-    .catch(err => {
-      console.error('❌ Error:', err);
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
-    });
-      submitAllSettings();
+  console.log("💾 [SYNCING] Saving full state to /setting.json...");
+  postJSON('/setting.json', data);
 }

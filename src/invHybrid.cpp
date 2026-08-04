@@ -359,6 +359,14 @@ void invHybrid::sendCommand(String data)
   }
 
   ///////////////////////////////////////////////////////////////////////////////
+  // Energy Reset
+  if(data == "energyreset")
+  {
+    energyreset = true;
+    Serial.println("Energy Reset");
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
   // Help
   if (data == "help")
   {
@@ -375,92 +383,67 @@ void invHybrid::parseQPIGS(String response)
   if (response.startsWith("("))
   {
     response = response.substring(1, response.length() - 1); // Remove parentheses
-    char dataArray[120];                                     // Fixed-size buffer (QPIGS max ~108 chars after trim)
+    char dataArray[120];                                     // Fixed-size buffer
     response.toCharArray(dataArray, sizeof(dataArray));      // Convert to C-string
-    char *token = strtok(dataArray, " ");                    // Split by space // First token
+    char *token = strtok(dataArray, " ");                    // Split by space
     int index = 0;
     while (token != NULL)
     {
       switch (index)
       {
-      case 0:
-        data.gridVoltage = atof(token);
-        break; // Convert to float
-      case 1:
-        data.gridFrequency = atof(token);
-        break;
-      case 2:
-        data.outputVoltage = atof(token);
-        break;
-      case 3:
-        data.outputFrequency = atof(token);
-        break;
-      case 4:
-        data.ApparentPower = strtoul(token, NULL, 10);
-        break;
-      case 5:
-        data.ActivePower = strtoul(token, NULL, 10);
-        break;
-      case 6:
-        data.loadPercent = strtoul(token, NULL, 10);
-        break;
-      case 7:
-        data.busVoltage = strtoul(token, NULL, 10);
-        break;
-      case 8:
-        data.batteryVoltage = atof(token);
-        break;
-      case 9:
-        data.unknow9 = strtoul(token, NULL, 10);
-        break;
-      case 10:
-        data.unknow10 = strtoul(token, NULL, 10);
-        break;
-      case 11:
-        data.temp = strtoul(token, NULL, 10);
-        break;
-      case 12:
-        data.pvCurrent = atof(token);
-        break;
-      case 13:
-        data.pvVoltage = atof(token);
-        break;
-      case 14:
-        data.unknow14 = atof(token);
-        break;
-      case 15:
-        data.unknow15 = strtoul(token, NULL, 10);
-        break;
-      case 16:
-        data.InverterStatus = strtoul(token, NULL, 10);
-        break;
-      case 17:
-        data.unknow17 = strtoul(token, NULL, 10);
-        break;
-      case 18:
-        data.unknow18 = strtoul(token, NULL, 10);
-        break;
-      case 19:
-        data.unknow19 = strtoul(token, NULL, 10);
-        break;
-      case 20:
-        data.unknow20 = strtoul(token, NULL, 10);
-        break;
+      case 0:  data.gridVoltage = atof(token); break;
+      case 1:  data.gridFrequency = atof(token); break;
+      case 2:  data.outputVoltage = atof(token); break;
+      case 3:  data.outputFrequency = atof(token); break;
+      case 4:  data.ApparentPower = strtoul(token, NULL, 10); break;
+      case 5:  data.ActivePower = strtoul(token, NULL, 10); break;
+      case 6:  data.loadPercent = strtoul(token, NULL, 10); break;
+      case 7:  data.busVoltage = strtoul(token, NULL, 10); break;
+      case 8:  data.batteryVoltage = atof(token); break;
+      case 9:  data.unknow9 = strtoul(token, NULL, 10); break;
+      case 10: data.unknow10 = strtoul(token, NULL, 10); break;
+      case 11: data.temp = strtoul(token, NULL, 10); break;
+      case 12: data.pvCurrent = atof(token); break;
+      case 13: data.pvVoltage = atof(token); break;
+      case 14: data.unknow14 = atof(token); break;
+      case 15: data.unknow15 = strtoul(token, NULL, 10); break;
+      case 16: data.InverterStatus = strtoul(token, NULL, 10); break;
+      case 17: data.unknow17 = strtoul(token, NULL, 10); break;
+      case 18: data.unknow18 = strtoul(token, NULL, 10); break;
+      case 19: data.unknow19 = strtoul(token, NULL, 10); break;
+      case 20: data.unknow20 = strtoul(token, NULL, 10); break;
       }
       token = strtok(NULL, " ");
       index++;
     }
   }
-  data.outputCurrent = data.ApparentPower / data.gridVoltage;
-  data.outputCurrent = roundf(data.outputCurrent * 10) / 10.0;
-  data.powerFactor = (float)data.ActivePower / (float)data.ApparentPower;
-  if (isnan(data.powerFactor) || data.powerFactor < 0 || data.powerFactor > 1)
-  {
-    data.powerFactor = 0.0;
+
+  // 1. คำนวณ Output Current (กระแสฝั่งโหลด)
+  if (data.gridVoltage > 0) {
+    data.outputCurrent = (float)data.ApparentPower / data.gridVoltage;
+    data.outputCurrent = roundf(data.outputCurrent * 10.0f) / 10.0f; // ทศนิยม 1 ตำแหน่ง
+  } else {
+    data.outputCurrent = 0.0f;
   }
-  data.powerFactor = roundf(data.powerFactor * 100) / 100.0;
+
+  // 2. คำนวณ Power Factor
+  if (data.ApparentPower > 0) {
+    data.powerFactor = (float)data.ActivePower / (float)data.ApparentPower;
+    if (isnan(data.powerFactor) || data.powerFactor < 0.0f || data.powerFactor > 1.0f) {
+      data.powerFactor = 0.0f;
+    }
+    data.powerFactor = roundf(data.powerFactor * 100.0f) / 100.0f; // ทศนิยม 2 ตำแหน่ง
+  } else {
+    data.powerFactor = 0.0f;
+  }
+
+  // 3. คำนวณ กำลังไฟจาก PV (Watt) -> รองรับทศนิยม
   data.pvPower = data.pvCurrent * data.pvVoltage;
-  data.gridPower = data.ActivePower - data.pvPower;
+  data.pvPower = roundf(data.pvPower * 10.0f) / 10.0f; // ทศนิยม 1 ตำแหน่ง
+
+  // 4. คำนวณ กำลังไฟ Grid (Watt) -> รองรับทศนิยม และ ติดลบได้
+  data.gridPower = (float)data.ActivePower - data.pvPower;
+  data.gridPower = roundf(data.gridPower * 10.0f) / 10.0f; // ทศนิยม 1 ตำแหน่ง
 }
 
 void invHybrid::parseQPIRI(String response)

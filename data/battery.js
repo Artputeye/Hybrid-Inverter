@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const ranges = {
     BulkChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
     FloatingChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
@@ -11,77 +10,69 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const units = {
-    BulkChargingVoltage: "V",
-    FloatingChargingVoltage: "V",
-    LowBatteryCutoffVoltage: "V",
-    BatteryEqualizationVoltage: "V",
-    BatteryEqualizationTime: "min",
-    BatteryEqualizationTimeout: "min",
+    BulkChargingVoltage: "V", FloatingChargingVoltage: "V",
+    LowBatteryCutoffVoltage: "V", BatteryEqualizationVoltage: "V",
+    BatteryEqualizationTime: "min", BatteryEqualizationTimeout: "min",
     BatteryEqualizationInterval: "day"
   };
 
   const toggle = document.getElementById("battypeToggle");
   const battLabel = document.getElementById("battType");
 
-  // ฟังก์ชันตั้ง min/max และ label
   function setRangeAndLabel(inputId, labelId, voltType) {
     const input = document.getElementById(inputId);
     const label = document.getElementById(labelId);
     if (!input || !ranges[inputId]) return;
 
-    let min, max;
-    if (Array.isArray(ranges[inputId])) {
-      [min, max] = ranges[inputId];
-    } else {
-      [min, max] = ranges[inputId][voltType];
-    }
-
+    const [min, max] = Array.isArray(ranges[inputId]) ? ranges[inputId] : ranges[inputId][voltType];
     input.min = min;
     input.max = max;
-
-    const unit = units[inputId] || "";
-    if (label) label.textContent = `${min} - ${max} ${unit}`;
+    if (label) label.textContent = `${min} - ${max} ${units[inputId] || ""}`;
   }
 
-  // ฟังก์ชัน toggle 24/48V
   function toggleSelect(checkbox) {
-    const voltType = checkbox.checked ? "48" : "24";
+    const voltType = checkbox?.checked ? "48" : "24";
     if (battLabel) battLabel.textContent = voltType + "V";
 
-    // dependent
-    setRangeAndLabel("BulkChargingVoltage", "BulkCharging_Voltage", voltType);
-    setRangeAndLabel("FloatingChargingVoltage", "FloatingCharging_Voltage", voltType);
-    setRangeAndLabel("LowBatteryCutoffVoltage", "LowBatteryCutoff_Voltage", voltType);
-    setRangeAndLabel("BatteryEqualizationVoltage", "BatteryEqualization_Voltage", voltType);
+    ["BulkChargingVoltage", "FloatingChargingVoltage", "LowBatteryCutoffVoltage", "BatteryEqualizationVoltage"]
+      .forEach(id => setRangeAndLabel(id, id.replace("Voltage", "_Voltage"), voltType));
 
-    // fixed
-    setRangeAndLabel("BatteryEqualizationTime", "BatteryEqualization_Time", voltType);
-    setRangeAndLabel("BatteryEqualizationTimeout", "BatteryEqualization_Timeout", voltType);
-    setRangeAndLabel("BatteryEqualizationInterval", "BatteryEqualization_Interval", voltType);
+    ["BatteryEqualizationTime", "BatteryEqualizationTimeout", "BatteryEqualizationInterval"]
+      .forEach(id => setRangeAndLabel(id, id.replace("BatteryEqualization", "BatteryEqualization_"), voltType));
   }
 
-  // ฟังก์ชันส่งค่าปุ่ม Set
+  // Bind Checkbox events
+  document.querySelectorAll('.toggle-row input[type="checkbox"]').forEach(cb => {
+    const settingName = cb.getAttribute("data-setting") || cb.id.replace(/\s+/g, "");
+    cb.addEventListener("change", function() {
+      const val = this.checked ? 1 : 0;
+      console.log(`🔘 [BATT TOGGLE] ${settingName} = ${val}`);
+      sendToServer(settingName, val);
+      if (this.id === "battypeToggle") toggleSelect(this);
+    });
+  });
+
+  // Global sendSetting function
   window.sendSetting = function(button) {
-    const container = button.closest(".form-row");
+    const container = button.closest(".form-row, .card-main");
     if (!container) return;
 
     const inputElement = container.querySelector("select, input");
     if (!inputElement) return;
 
     const settingName = inputElement.id;
-    let value = inputElement.value;
+    let val = parseFloat(inputElement.value);
 
     if (inputElement.type === "number") {
-      let min = parseFloat(inputElement.min);
-      let max = parseFloat(inputElement.max);
-      let val = parseFloat(value);
-      let errorMsg = document.getElementById(settingName + "_error");
-      const unit = units[settingName] || "";
+      const min = parseFloat(inputElement.min);
+      const max = parseFloat(inputElement.max);
+      const errorMsg = document.getElementById(settingName + "_error");
 
-      if (val < min || val > max || isNaN(val)) {
+      if (isNaN(val) || val < min || val > max) {
+        console.warn(`⚠️ [VALIDATION FAILED] ${settingName} value ${val} out of range [${min} - ${max}]`);
         inputElement.style.border = "2px solid red";
         if (errorMsg) {
-          errorMsg.textContent = `กรุณาใส่ค่าในช่วง ${min} - ${max} ${unit}`;
+          errorMsg.textContent = `กรุณาใส่ค่าในช่วง ${min} - ${max} ${units[settingName] || ""}`;
           errorMsg.style.display = "block";
         }
         return;
@@ -90,121 +81,66 @@ document.addEventListener("DOMContentLoaded", () => {
         if (errorMsg) errorMsg.style.display = "none";
       }
 
-      const voltageKeys = [
-        "BulkChargingVoltage",
-        "FloatingChargingVoltage",
-        "LowBatteryCutoffVoltage",
-        "BatteryEqualizationVoltage"
-      ];
-      if (voltageKeys.includes(settingName)) {
-        value = Math.round(val * 10);
-      } else {
-        value = val;
+      // ถ้าเป็นแรงดัน คูณ 10 เพื่อแปลงเป็น Integer
+      if (["BulkChargingVoltage", "FloatingChargingVoltage", "LowBatteryCutoffVoltage", "BatteryEqualizationVoltage"].includes(settingName)) {
+        val = Math.round(val * 10);
       }
     }
 
-    settingToserver(settingName, value);
-    console.log(`📤 ส่งค่าไป server: ${settingName} = ${value}`);
+    const finalVal = parseInt(val, 10);
+    console.log(`🔘 [BATT SETTING] Sending ${settingName} = ${finalVal}`);
+    sendToServer(settingName, finalVal);
   };
 
-  // ฟังก์ชันส่ง toggle checkbox
-  function toggleSetting(checkbox, settingName) {
-    const status = checkbox.checked ? "1" : "0";
-    settingToserver(settingName, status);
-    console.log(`ส่งค่า: ${settingName} = ${status}`);
-  }
-
-  // bind toggle checkbox
-  document.querySelectorAll('.toggle-row input[type="checkbox"]').forEach(cb => {
-    const settingName = cb.getAttribute("data-setting") || cb.id.replace(/\s+/g, "");
-    cb.addEventListener("change", function() {
-      toggleSetting(this, settingName);
-      if (this.id === "battypeToggle") toggleSelect(this);
-    });
-  });
-
-  // โหลดค่าจาก server
+  // Restore Battery Data
   fetch('/battery.json')
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-      console.log(data);
-
-      // เติม <select>
-      for (const key in data) {
-        const selectElement = document.getElementById(key);
-        if (selectElement && selectElement.tagName === "SELECT") {
-          const valueToSelect = data[key];
-          for (const option of selectElement.options) {
-            if (option.value.toLowerCase() === valueToSelect.toLowerCase()) {
-              selectElement.value = option.value;
-              break;
-            }
-          }
-        }
-      }
-
-      // เติม <checkbox>
-      for (const key in data) {
-        const checkbox = document.getElementById(key);
-        if (checkbox && checkbox.type === "checkbox") {
-          checkbox.checked = data[key] === "1";
-        }
-      }
-
-      // เติม <input type="number">
-      for (const key in data) {
-        const inputNumber = document.getElementById(key);
-        if (inputNumber && inputNumber.tagName === "INPUT" && inputNumber.type === "number") {
-          inputNumber.value = data[key];
-        }
-      }
-
-      // 🔹 ปรับ min/max หลังเติมค่า
+      console.log("📥 [RESTORE] Loaded battery settings from /battery.json:", data);
+      Object.keys(data).forEach(key => {
+        const el = document.getElementById(key);
+        if (!el) return;
+        if (el.tagName === "SELECT") el.value = data[key];
+        else if (el.type === "checkbox") el.checked = data[key] === "1" || data[key] === 1;
+        else if (el.type === "number") el.value = data[key];
+      });
       toggleSelect(toggle);
     })
-    .catch(error => console.error("Error fetching battery settings:", error));
+    .catch(err => console.error("❌ [RESTORE ERROR] Fetching battery settings:", err));
 
-  // ส่งค่าไป server
-  function settingToserver(settingName, state) {
+  function sendToServer(settingName, value) {
+    const payload = { setting: settingName, value: Number(value) };
+
+    // 🔍 LOG: รายละเอียดการส่งของ Battery
+    console.log(`📤 [POST REQUEST] Destination: /invsetting`);
+    console.log(`📦 [PAYLOAD DATA]:`, payload);
+    console.log(`📄 [JSON STRING]:`, JSON.stringify(payload));
+    console.log(`💡 [DATA TYPE OF VALUE]:`, typeof payload.value);
+
     fetch('/invsetting', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ setting: settingName, value: state })
+      body: JSON.stringify(payload)
     })
-    .then(response => response.text())
-    .then(result => console.log(`✅ ${settingName} updated: ${state}`, result))
-    .catch(error => console.error("❌ Error:", error));
-
-    submitAllSettings();
+    .then(res => res.text())
+    .then((resText) => {
+      console.log(`✅ [RESPONSE] Status OK | Body:`, resText);
+      submitAllSettings();
+    })
+    .catch(err => console.error("❌ [FETCH ERROR]:", err));
   }
 
-  // เก็บค่าและส่งทั้งหมด
   function submitAllSettings() {
     const data = {};
+    document.querySelectorAll('input[type="checkbox"]').forEach(i => i.id && (data[i.id] = i.checked ? "1" : "0"));
+    document.querySelectorAll('input[type="number"]').forEach(i => i.id && (data[i.id] = i.value));
+    document.querySelectorAll('select').forEach(i => i.id && (data[i.id] = i.value));
 
-    document.querySelectorAll('input[type="checkbox"]').forEach(input => {
-      const id = input.id;
-      if (id) data[id] = input.checked ? "1" : "0";
-    });
-
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-      const id = input.id;
-      if (id) data[id] = input.value;
-    });
-
-    document.querySelectorAll('select').forEach(select => {
-      const id = select.id;
-      if (id) data[id] = select.value;
-    });
-
+    console.log("💾 [SYNCING] Saving full battery state to /battery.json...");
     fetch('/battery.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    })
-    .then(response => response.text())
-    .then(result => console.log("Successed:", result))
-    .catch(error => console.error("Error:", error));
+    });
   }
-
 });

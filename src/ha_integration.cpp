@@ -9,7 +9,6 @@ unsigned long lastMsg = 0;
 
 void iotHAsetup()
 {
-
   client.setServer(MQTT_SERVER, MQTT_PORT);
   client.setBufferSize(4096);
   client.setKeepAlive(60);
@@ -24,9 +23,9 @@ void iotHAloop()
   }
   client.loop();
 
-  // อัปเดตข้อมูลส่งไป HA ทุกๆ 10 วินาที
+  // อัปเดตข้อมูลส่งไป HA ทุกๆ 3 วินาที
   unsigned long now = millis();
-  if (now - lastMsg > 10000)
+  if (now - lastMsg > 3000)
   {
     lastMsg = now;
     publish_all_states();

@@ -16,10 +16,10 @@ unsigned long lastGridOpr = 0;
 unsigned long lastGridCheck = 0;
 unsigned long lastEnergy = 0;
 /////////////////////////////////////////////////////////////////////////////////
-const unsigned long qvalInterval = 5000;
+const unsigned long qvalInterval = 3000;
 const unsigned long qrateInterval = 19000;
 
-const unsigned long fileInterval = 15 * 60 * 1000; //record to file every 15 minutes
+const unsigned long fileInterval = 15 * 60 * 1000; // record to file every 15 minutes
 const unsigned long gridOprInterval = 1000;
 const unsigned long gridCheckInterval = 1 * 60 * 1000; //(1 * 60 * 1000 ms)
 
@@ -31,7 +31,7 @@ bool gridState = false;
 void gridRun()
 {
     // 1. ถาม QPIGS (ทุก 5 วินาที)
-    if ((millis() - lastQvalue) > qvalInterval) 
+    if ((millis() - lastQvalue) > qvalInterval)
     {
         lastQvalue = millis();
         if (inv.RunMode)
@@ -39,13 +39,13 @@ void gridRun()
             inv.sendCommand("QPIGS");
             wsJsonSerial("Sent to inv: QPIGS");
             inv.Response(); // เรียก Response ทันทีหลังจาก sendCommand
-            wsJsonInverter(inv.invData);      
-            wsJsonInverter(String(inv.invData.length()));       
+            wsJsonInverter(inv.invData);
+            wsJsonInverter(String(inv.invData.length()));
         }
     }
 
     // 2. ถาม QPIRI (ทุก 19 วินาที)
-    if ((millis() - lastQrate) > qrateInterval) 
+    if ((millis() - lastQrate) > qrateInterval)
     {
         lastQrate = millis();
         if (inv.RunMode)
@@ -54,8 +54,8 @@ void gridRun()
             inv.sendCommand("QPIRI");
             wsJsonSerial("Sent to inv: QPIRI");
             inv.Response();
-            wsJsonInverter(inv.invData);      
-            wsJsonInverter(String(inv.invData.length()));       
+            wsJsonInverter(inv.invData);
+            wsJsonInverter(String(inv.invData.length()));
         }
     }
 }
@@ -66,6 +66,26 @@ void gridOperation()
     float dt = (currentMillis - lastEnergy) / 1000.0;
     lastEnergy = currentMillis;
 
+    if (inv.energyreset)
+    {
+        Serial.println("Energy Reset Command Received");
+        bool success = clearEnergyFile();
+        energy_kWh = 0.0; // Reset the energy counter
+        if (!success)
+        {
+            Serial.println("⚠️ Warning: energy reset failed, retrying...");
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            success = clearEnergyFile();
+        }
+
+        if (success)
+            Serial.println("✅ Energy reset complete");
+        else
+            Serial.println("❌ Energy reset failed after retry");
+
+        inv.energyreset = false; // Reset the flag after processing
+    }
+
     static bool clearedToday = false;
     if (rtc.hour == 18 && rtc.minute == 0 && !clearedToday)
     {
@@ -75,7 +95,7 @@ void gridOperation()
         if (!success)
         {
             Serial.println("⚠️ Warning: daily reset failed, retrying...");
-            vTaskDelay(pdMS_TO_TICKS(1000)); 
+            vTaskDelay(pdMS_TO_TICKS(1000));
             success = clearEnergyFile();
         }
 
@@ -162,7 +182,7 @@ void gridOperation()
                 Serial.printf("⚙️ Confirming Grid %s (energy = %.3f)\n",
                               gridState ? "ON" : "OFF", energy_kWh);
                 wsJsonControll(String("⚙️ Confirming Grid ") + (gridState ? "ON" : "OFF") +
-                             String(" (energy = ") + String(energy_kWh, 3) + String(" kWh)"));
+                               String(" (energy = ") + String(energy_kWh, 3) + String(" kWh)"));
             }
         }
     }
