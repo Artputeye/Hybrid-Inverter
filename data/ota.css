@@ -1,71 +1,136 @@
-.upload-section {
+/* ==========================================================================
+   VoltFlow - OTA Firmware Upgrade Styling (ota.css)
+   ========================================================================== */
+
+.hidden {
+  display: none !important;
+}
+
+.upload-card-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
   text-align: center;
-  vertical-align: middle;
-  padding: 20px;
-  border: 1px solid #ffffff;
-  width: 80%;
-  max-width: 360px;
-  border-radius: 10px;
-  background-color: #ffffff;
-  box-shadow: 0 0 8px rgba(79, 79, 79, 0.25);
 }
 
-select, button {
+/* Radio Switch Segment Controls */
+.cyber-radio-group {
+  display: flex;
+  gap: 8px;
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e5e5e5;
 }
 
-button {
-  background-color: #dadada;
-  color: rgb(62, 62, 62);
-  border: 1px solid #ffffff;
-  font-weight: bold;
+.cyber-radio-label {
+  flex: 1;
+  position: relative;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-button:hover {
-  background-color: #959595;
+.cyber-radio-label input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-btn-text {
+  display: block;
+  text-align: center;
+  padding: 8px 10px;
+  background: var(--sub-bg-card-solid);
+  border: 1px solid var(--sub-border-color);
+  border-radius: 6px;
+  font-family: var(--sub-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sub-text-muted);
+  transition: all 0.2s ease;
+}
+
+.cyber-radio-label input[type="radio"]:checked + .radio-btn-text {
+  background: rgba(0, 180, 216, 0.1);
+  border-color: var(--sub-accent-cyan);
+  color: var(--sub-accent-cyan);
+  box-shadow: 0 0 0 1px var(--sub-accent-cyan);
+}
+
+/* Custom Cyber File Upload Button */
+.file-input-group {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.custom-file-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
+  background: var(--sub-bg-card-solid);
+  border: 1px dashed var(--sub-accent-cyan);
+  border-radius: 6px;
+  color: var(--sub-accent-cyan);
+  font-family: var(--sub-font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.custom-file-upload:hover {
+  background: rgba(0, 180, 216, 0.08);
+  border-style: solid;
+}
+
+.file-name {
+  display: block;
+  font-family: var(--sub-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sub-accent-green);
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+/* Flash Execution Trigger */
+.btn-upload-flash {
+  width: 100%;
+  height: 38px;
+  font-size: 0.78rem;
+}
+
+/* Progress Bar Container */
+.progress-bar-wrapper {
+  margin-top: 10px;
+  width: 100%;
 }
 
 progress {
   width: 100%;
-  margin-top: 10px;
+  height: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--sub-border-color);
+  overflow: hidden;
 }
 
-input[type="file"] {
-  display: none;
+progress::-webkit-progress-bar {
+  background-color: var(--sub-border-color);
+  border-radius: 4px;
 }
 
-.custom-file-upload {
-  background-color: #f6f6f6;
-  color: rgb(0, 0, 0);
-  padding: 10px 20px;
-  border: 1px solid #c9c9c9;
-  border-radius: 999px;
-  display: inline-block;
-  cursor: pointer;
-  margin: 5px;
-  font-weight: normal;
-  transition: background-color 0.3s;
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, var(--sub-accent-cyan), var(--sub-accent-green));
+  border-radius: 4px;
+  transition: width 0.2s ease;
 }
 
-.custom-file-upload:hover {
-  background-color: #d8d8d8;
+progress::-moz-progress-bar {
+  background: linear-gradient(90deg, var(--sub-accent-cyan), var(--sub-accent-green));
+  border-radius: 4px;
 }
-
-.custom-file-upload i {
-  margin-right: 8px;
-}
-
-#file-name {
-  color: #007BFF; 
-}
-
-/* .hidden {
-  display: none;
-} */

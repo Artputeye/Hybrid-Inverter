@@ -1,56 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSerial</title>
-    <link rel="stylesheet" href="info.css">
-    <link rel="stylesheet" href="mainstyle.css">
-    
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH // Web Serial Console</title>
+
+  <!-- Cyber Tech Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="mainstyle.css" />
+  <link rel="stylesheet" href="substyle.css" />
 </head>
 <body>
-    <header class="navbar">
-        <div class="navbar-brand">
-            <a href="index.html" class="navbar-logo-link">
-                <span class="navbar-text">ARTTECH</span>
-            </a>
-        </div>
-    </header>
+  <!-- Overlay Scanline Effect -->
+  <div class="cyber-scanline"></div>
 
-    <div class="container">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon"></div>
-                Web Serial Monitor
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="terminal" id="terminal">
-                <div class="empty-state">
-                </div>
-            </div>
-
-            <div class="input-section">
-                <input 
-                    type="text" 
-                    class="message-input" 
-                    id="messageInput" 
-                    placeholder="Command here"  
-                >
-                <button class="send-btn" id="sendBtn" >Send</button>
-                <button class="clear-btn" id="clearBtn">Clear</button> <!-- ปุ่ม Clear -->
-            </div>
-        </div>
-        <div class="blockdummy"></div>  
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="navbar-brand">
+      <a href="index.html" class="navbar-logo-link">
+        <span class="logo-symbol">⚡</span>
+        <span class="navbar-text">ARTTECH <span class="sub-logo">// VOLTFLOW</span></span>
+      </a>
     </div>
-<!-- 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>&copy; 2025 www.arttech.com copyright.</p>
+    <div class="navbar-actions">
+      <div class="sync-indicator">
+        <span class="pulse-dot"></span>
+        <span class="sync-label">IP_ADDR:</span>
+        <span id="device_ip" class="sync-time">--.--.--.--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Layout with Sidebar -->
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>HUB</span>
+        </a>
+        <a href="monitor.html" class="nav-item">
+          <span class="nav-icon">⚙</span>
+          <span>MONITOR</span>
+        </a>
+        <a href="setting.html" class="nav-item">
+          <span class="nav-icon">🛠</span>
+          <span>SETTINGS</span>
+        </a>
+        <a href="battery.html" class="nav-item">
+          <span class="nav-icon">🔋</span>
+          <span>BATTERY</span>
+        </a>
+        <a href="state.html" class="nav-item">
+          <span class="nav-icon">⇄</span>
+          <span>STATE</span>
+        </a>
+        <a href="network.html" class="nav-item">
+          <span class="nav-icon">🌐</span>
+          <span>NETWORK</span>
+        </a>
+        <a href="info.html" class="nav-item active">
+          <span class="nav-icon">&gt;_</span>
+          <span>CONSOLE</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Viewport -->
+    <main class="dashboard-viewport">
+      <div class="settings-container">
+        
+        <!-- Console Header Banner -->
+        <div class="settings-page-header">
+          <div>
+            <h2 class="settings-title">WEB SERIAL TERMINAL &amp; CONSOLE</h2>
+            <p class="settings-subtitle">Direct Inverter Command Line &amp; Real-time Telemetry Stream</p>
+          </div>
+          <span class="cyber-badge">&gt;_ BUS_ONLINE</span>
         </div>
-    </footer>
- -->
-    <script src="info.js"></script>
+
+        <!-- Terminal Output Window -->
+        <div class="panel-card console-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">LIVE_TERMINAL_OUTPUT</h3>
+            <span class="status-live-tag"><span class="pulse-dot"></span> STREAMING</span>
+          </div>
+
+          <div class="terminal" id="terminal">
+            <div class="empty-state">
+              <span class="empty-state-icon">&gt;_</span>
+              <p>System initialized. Ready for serial commands...</p>
+            </div>
+          </div>
+
+          <!-- Command Input Section -->
+          <div class="input-section">
+            <input 
+              type="text" 
+              class="message-input cyber-input" 
+              id="messageInput" 
+              placeholder="Enter command (e.g., QPIRI, QPIWS)..." 
+            />
+            <button class="button-set send-btn" id="sendBtn">SEND</button>
+            <button class="button-set clear-btn" id="clearBtn">CLEAR</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="info.js"></script>
 </body>
 </html>

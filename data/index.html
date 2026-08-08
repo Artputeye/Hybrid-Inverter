@@ -1,85 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARTTECH</title>
-    <link rel="stylesheet" href="mainstyle.css">
-    <link rel="stylesheet" href="substyle.css">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH // Control Hub</title>
+
+  <!-- Cyber Tech Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Style Sheets -->
+  <link rel="stylesheet" href="mainstyle.css" />
+  <link rel="stylesheet" href="substyle.css" />
 </head>
+<body>
+  <!-- Overlay Scanline Effect -->
+  <div class="cyber-scanline"></div>
 
-<body >
-    <header class="navbar">
-        <div class="navbar-brand">
-            <a href="index.html" class="navbar-logo-link">
-                <span class="navbar-text">ARTTECH</span>
-            </a>
-        </div>
-    </header>
-
-    <div class="main-container">     
-            <div class="blockhead">
-                <div class="blockname">
-                    <p class="namehead">HYBRID INVERTER</p>
-                </div>  
-            </div>  
-            <div class="blockcontent">           
-                <div class="menu-grid">
-                    <a href="monitor.html" class="blockicon-link">
-                        <div class="blockicon" id="inverter">
-                            <p class="namesub">Monitor</p>
-                            <div><img src="pic/pic-monitor.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-
-                    <a href="setting.html" class="blockicon-link">
-                        <div class="blockicon" id="setting">
-                            <p class="namesub">Setting</p>
-                            <div><img src="pic/pic-setting.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-
-                    <a href="battery.html" class="blockicon-link">
-                        <div class="blockicon" id="battery">
-                            <p class="namesub">Battery</p>
-                            <div><img src="pic/pic-battery.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-
-                    <a href="state.html" class="blockicon-link">
-                        <div class="blockicon" id="state">
-                            <p class="namesub">State</p>
-                            <div><img src="pic/pic-state.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-
-                    <a href="network.html" class="blockicon-link">
-                        <div class="blockicon" id="connect">
-                            <p class="namesub">Network</p>
-                            <div><img src="pic/pic-connect.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-                    
-                    <a href="info.html" class="blockicon-link">
-                        <div class="blockicon" id="info">
-                            <p class="namesub">Info</p>
-                            <div><img src="pic/pic-info.png" width="45" height="45"></div>
-                        </div>
-                    </a>
-                </div> 
-            </div> 
+  <!-- Cyber Top Navbar -->
+  <header class="navbar">
+    <div class="navbar-brand">
+      <a href="index.html" class="navbar-logo-link">
+        <span class="logo-symbol">⚡</span>
+        <span class="navbar-text">ARTTECH <span class="sub-logo">// CONTROL HUB</span></span>
+      </a>
     </div>
+    <div class="navbar-actions">
+      <div class="sync-indicator">
+        <span class="pulse-dot"></span>
+        <span class="sync-label">SYSTEM:</span>
+        <span class="sync-time">READY</span>
+      </div>
+    </div>
+  </header>
 
-<!-- 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>&copy; 2025 www.arttech.com copyright.</p>
+    <!-- App Layout with Sidebar and Main Content -->
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>HUB</span>
+        </a>
+        <a href="monitor.html" class="nav-item">
+          <span class="nav-icon">⚙</span>
+          <span>MONITOR</span>
+        </a>
+        <a href="setting.html" class="nav-item">
+          <span class="nav-icon">🛠</span>
+          <span>SETTINGS</span>
+        </a>
+        <a href="battery.html" class="nav-item">
+          <span class="nav-icon">🔋</span>
+          <span>BATTERY</span>
+        </a>
+        <a href="state.html" class="nav-item">
+          <span class="nav-icon">⇄</span>
+          <span>STATE</span>
+        </a>
+        <a href="network.html" class="nav-item">
+          <span class="nav-icon">🌐</span>
+          <span>NETWORK</span>
+        </a>
+        <a href="ota.html" class="nav-item active">
+          <span class="nav-icon">⇪</span>
+          <span>OTA UPDATE</span>
+        </a>
+        <a href="info.html" class="nav-item">
+          <span class="nav-icon">&gt;_</span>
+          <span>CONSOLE</span>
+        </a>
+      </nav>
+    </aside>
+
+  <!-- Central Dashboard Portal Top-Aligned -->
+  <main class="dashboard-viewport" style="align-items: center; justify-content: flex-start; min-height: calc(100vh - 60px); padding: 16px 12px 24px 12px;">
+    <div class="main-container">
+      
+      <div class="blockhead">
+        <div class="blockname">
+          <p class="namehead">HYBRID INVERTER</p>
         </div>
-    </footer>
- -->
+      </div>
 
-<!-- <script src="iscript.js"></script> -->
+      <div class="blockcontent">
+        <div class="menu-grid">
+          
+          <!-- Monitor -->
+          <a href="monitor.html" class="blockicon-link">
+            <div class="blockicon" id="inverter">
+              <p class="namesub">Monitor</p>
+              <div>
+                <img src="pic/pic-monitor.png" width="42" height="42" alt="Monitor Icon" />
+              </div>
+            </div>
+          </a>
 
+          <!-- Setting -->
+          <a href="setting.html" class="blockicon-link">
+            <div class="blockicon" id="setting">
+              <p class="namesub">Setting</p>
+              <div>
+                <img src="pic/pic-setting.png" width="36" height="36" alt="Setting Icon" />
+              </div>
+            </div>
+          </a>
+
+          <!-- Battery -->
+          <a href="battery.html" class="blockicon-link">
+            <div class="blockicon" id="battery">
+              <p class="namesub">Battery</p>
+              <div>
+                <img src="pic/pic-battery.png" width="36" height="36" alt="Battery Icon" />
+              </div>
+            </div>
+          </a>
+
+          <!-- State -->
+          <a href="state.html" class="blockicon-link">
+            <div class="blockicon" id="state">
+              <p class="namesub">State</p>
+              <div>
+                <img src="pic/pic-state.png" width="36" height="36" alt="State Icon" />
+              </div>
+            </div>
+          </a>
+
+          <!-- Network -->
+          <a href="network.html" class="blockicon-link">
+            <div class="blockicon" id="connect">
+              <p class="namesub">Network</p>
+              <div>
+                <img src="pic/pic-connect.png" width="36" height="36" alt="Network Icon" />
+              </div>
+            </div>
+          </a>
+
+          <!-- Info -->
+          <a href="ota.html" class="blockicon-link">
+            <div class="blockicon" id="info">
+              <p class="namesub">OTA</p>
+              <div>
+                <img src="pic/pic-ota.png" width="36" height="36" alt="Info Icon" />
+              </div>
+            </div>
+          </a>
+
+        </div> 
+      </div>
+
+    </div>
+  </main>
 </body>
 </html>

@@ -1,69 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Hybrid Inverter Settings</title>
-  <link rel="stylesheet" href="ota.css">
-  <link rel="stylesheet" href="mainstyle.css">
-  <style>
-    .hidden {
-      display: none;
-    }
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH // Firmware OTA Update</title>
 
-    .file-input-group {
-      margin-top: 10px;
-    }
-  </style>
+  <!-- Cyber Tech Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Style Sheets -->
+  <link rel="stylesheet" href="mainstyle.css" />
+  <link rel="stylesheet" href="substyle.css" />
+  <link rel="stylesheet" href="ota.css" />
 </head>
-
 <body>
+  <!-- Overlay Scanline Effect -->
+  <div class="cyber-scanline"></div>
+
+  <!-- Top Navbar -->
   <header class="navbar">
     <div class="navbar-brand">
       <a href="index.html" class="navbar-logo-link">
-        <span class="navbar-text">ARTTECH</span>
+        <span class="logo-symbol">⚡</span>
+        <span class="navbar-text">ARTTECH <span class="sub-logo">// VOLTFLOW</span></span>
       </a>
+    </div>
+    <div class="navbar-actions">
+      <div class="sync-indicator">
+        <span class="pulse-dot"></span>
+        <span class="sync-label">SYSTEM_MODE:</span>
+        <span class="sync-time">OTA_FLASH</span>
+      </div>
     </div>
   </header>
 
-  <h1>OTA Firmware</h1>
-  <div class="upload-section">
-    <label for="type">OTA Mode:</label>
-    <select id="type">
-      <option value="otafirmware">Firmware</option>
-      <option value="otalittlefs">LittleFS</option>
-    </select>
+  <!-- App Layout with Sidebar and Main Content -->
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item">
+          <span class="nav-icon">▤</span>
+          <span>HUB</span>
+        </a>
+        <a href="monitor.html" class="nav-item">
+          <span class="nav-icon">⚙</span>
+          <span>MONITOR</span>
+        </a>
+        <a href="setting.html" class="nav-item">
+          <span class="nav-icon">🛠</span>
+          <span>SETTINGS</span>
+        </a>
+        <a href="battery.html" class="nav-item">
+          <span class="nav-icon">🔋</span>
+          <span>BATTERY</span>
+        </a>
+        <a href="state.html" class="nav-item">
+          <span class="nav-icon">⇄</span>
+          <span>STATE</span>
+        </a>
+        <a href="network.html" class="nav-item">
+          <span class="nav-icon">🌐</span>
+          <span>NETWORK</span>
+        </a>
+        <a href="ota.html" class="nav-item active">
+          <span class="nav-icon">⇪</span>
+          <span>OTA UPDATE</span>
+        </a>
+        <a href="info.html" class="nav-item">
+          <span class="nav-icon">&gt;_</span>
+          <span>CONSOLE</span>
+        </a>
+      </nav>
+    </aside>
 
-    <div style="margin-top:10px;">
-      <label>
-        <input type="radio" name="uploadMode" id="radioFile" checked onchange="toggleMode('file')"> File
-      </label>
-      <label>
-        <input type="radio" name="uploadMode" id="radioFolder" onchange="toggleMode('folder')"> Folder
-      </label>
-    </div>
+    <!-- Main Viewport Top-Aligned -->
+    <main class="dashboard-viewport" style="align-items: center; justify-content: flex-start; min-height: calc(100vh - 60px); padding: 16px 12px 24px 12px;">
+      <div class="main-container">
+        
+        <!-- Header Block -->
+        <div class="blockhead">
+          <div class="blockname">
+            <p class="namehead">OTA FIRMWARE UPDATE</p>
+          </div>
+        </div>
 
-    <div id="fileInputGroup" class="file-input-group">
-      <label class="custom-file-upload">
-        <input type="file" id="file" multiple hidden>
-        📁 Select File
-      </label>
-    </div>
+        <!-- Block Content -->
+        <div class="blockcontent">
+          
+          <!-- Mode Select Card -->
+          <div class="card-main">
+            <div class="card-name"><span>FLASH_TARGET_PARTITION</span></div>
+            <div class="form-row">
+              <select id="type" class="cyber-select">
+                <option value="otafirmware">Firmware Image (.bin)</option>
+                <option value="otalittlefs">LittleFS Filesystem (.bin)</option>
+              </select>
+            </div>
+          </div>
 
-    <div id="folderInputGroup" class="file-input-group hidden">
-      <label class="custom-file-upload">
-        <input type="file" id="folder" webkitdirectory multiple hidden>
-        📂 Select Folder
-      </label>
-    </div>
-    
-    <span id="file-name" class="file-name">No file chosen</span>
-    <br><br>
-    <button onclick="upload()">Upload</button>
-    <progress id="progress" max="100" value="0" style="width:300px;"></progress>
+          <!-- Selection Source Mode Radio Switch -->
+          <div class="card-main">
+            <div class="card-name"><span>UPLOAD_SOURCE_MODE</span></div>
+            <div class="cyber-radio-group">
+              <label class="cyber-radio-label">
+                <input type="radio" name="uploadMode" id="radioFile" checked onchange="toggleMode('file')">
+                <span class="radio-btn-text">📄 Single File</span>
+              </label>
+              <label class="cyber-radio-label">
+                <input type="radio" name="uploadMode" id="radioFolder" onchange="toggleMode('folder')">
+                <span class="radio-btn-text">📂 Directory Folder</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- File Upload Actions Card -->
+          <div class="card-main upload-card-area">
+            <div class="card-name"><span>SELECT_PAYLOAD</span></div>
+
+            <!-- Single File Selector -->
+            <div id="fileInputGroup" class="file-input-group">
+              <label class="custom-file-upload">
+                <input type="file" id="file" multiple hidden>
+                <span>📁 Browse Binaries</span>
+              </label>
+            </div>
+
+            <!-- Folder Selector -->
+            <div id="folderInputGroup" class="file-input-group hidden">
+              <label class="custom-file-upload">
+                <input type="file" id="folder" webkitdirectory multiple hidden>
+                <span>📂 Browse Folder</span>
+              </label>
+            </div>
+
+            <span id="file-name" class="file-name">No file chosen</span>
+          </div>
+
+          <!-- Progress and Trigger Action -->
+          <div class="card-main">
+            <div class="card-name"><span>FLASH_EXECUTION</span></div>
+            <button class="button-set btn-upload-flash" onclick="upload()">START FLASHING</button>
+            
+            <div class="progress-bar-wrapper">
+              <progress id="progress" max="100" value="0"></progress>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
   </div>
 
   <script src="ota.js"></script>
 </body>
-
 </html>

@@ -1,4 +1,4 @@
-// Toggle file/folder input
+// Toggle file/folder input mode
 function toggleMode(mode) {
   const fileGroup = document.getElementById("fileInputGroup");
   const folderGroup = document.getElementById("folderInputGroup");

@@ -28,7 +28,7 @@ String wsAllDataBase64()
     doc["Output Apparent Power"] = inv.data.ApparentPower;
     doc["Output Active Power"] = inv.data.ActivePower;
     doc["Output Voltage"] = inv.data.outputVoltage;
-    doc["Output Current"] = String(inv.data.outputCurrent, 2);
+    doc["Output Current"] = String(inv.data.outputCurrent, 1);
     doc["Output Frequency"] = inv.data.outputFrequency;
     doc["Power Factor"] = String(inv.data.powerFactor, 2);
     doc["PV Power"] = inv.data.pvPower;
