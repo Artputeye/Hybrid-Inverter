@@ -1,0 +1,310 @@
+/* ========================================================================
+   NETWORK.CSS - Network settings page styles
+   Shared shell and theme are provided by dashboard.css.
+   ======================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Page layout
+   -------------------------------------------------------------------------- */
+.network-page {
+  width: min(680px, 100%);
+  max-width: 50%;
+  min-width: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.network-page h1,
+.network-page h2,
+.network-page h3,
+.network-page p,
+.network-page button,
+.network-page input {
+  font-family: "DM Sans", sans-serif;
+}
+
+.network-status {
+  gap: 7px;
+  color: rgba(255, 255, 255, .72);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.network-status strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   2. Main network panel
+   -------------------------------------------------------------------------- */
+.network-panel {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 4px 20px rgba(29, 84, 82, .08);
+}
+
+.network-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(248, 250, 252, .8);
+}
+
+.network-header h2 {
+  margin-top: 5px;
+}
+
+.network-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   3.1 Connection mode toggles
+   -------------------------------------------------------------------------- */
+.network-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.network-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 50px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.network-toggle:hover,
+.network-group:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(77, 153, 223, .08);
+}
+
+.network-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.network-toggle-label strong {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex: 0 0 44px;
+  margin-left: auto;
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 24px;
+  background: #c9d7d8;
+  transition: background .2s ease;
+}
+
+.slider::before {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  content: "";
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 4px rgba(23, 59, 64, .2);
+  transition: transform .2s ease;
+}
+
+.switch input:checked + .slider {
+  background: var(--mint);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.switch input:focus-visible + .slider {
+  outline: 3px solid rgba(77, 153, 223, .28);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   3.2-3.4 Wi-Fi, static IP, and MQTT fields
+   -------------------------------------------------------------------------- */
+.network-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.network-group[hidden] {
+  display: none;
+}
+
+.network-group-title {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.network-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.network-field > label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.network-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.network-input {
+  min-width: 0;
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 13px "DM Sans", sans-serif;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.network-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(77, 153, 223, .14);
+}
+
+.password-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--muted);
+  transition: border-color .2s ease, color .2s ease;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* --------------------------------------------------------------------------
+   3.5 Save action
+   -------------------------------------------------------------------------- */
+.network-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.network-save {
+  min-width: 88px;
+  height: 38px;
+  margin-left: auto;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  background: var(--mint);
+  color: #fff;
+  font: 700 12px "DM Sans", sans-serif;
+  white-space: nowrap;
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.network-save:hover {
+  background: #159a7c;
+  box-shadow: 0 5px 12px rgba(35, 185, 154, .2);
+  transform: translateY(-1px);
+}
+
+.network-save:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .network-page {
+    width: 100%;
+    max-width: calc(100% - 24px);
+    padding: 24px 16px 36px;
+  }
+
+  .network-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  .network-page {
+    padding: 20px 12px 30px;
+  }
+
+  .network-header,
+  .network-content {
+    padding: 14px;
+  }
+
+  .network-group {
+    padding: 12px;
+  }
+
+  .network-input-row {
+    gap: 8px;
+  }
+}

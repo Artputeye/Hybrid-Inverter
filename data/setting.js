@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. ดึงค่าคอนฟิกเริ่มต้นจาก Server
+  // --------------------------------------------------------------------------
+  // 1. Restore inverter settings
+  // --------------------------------------------------------------------------
   fetch('/setting.json')
     .then(res => res.json())
     .then(data => {
       console.log("📥 [RESTORE] Loaded settings from /setting.json:", data);
       
-      // Restore Select, Checkbox, Number
+      // Restore select, checkbox, and number controls.
       Object.keys(data).forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -14,14 +16,16 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (el.type === "number") el.value = data[id];
       });
 
-      // Update UI State สำหรับ Grid Tie Auto
+      // Update the dependent Grid Tie Operation control.
       const gridTieAuto = document.getElementById("Grid Tie Auto");
       if (gridTieAuto) updateGridTieUI(gridTieAuto.checked);
     })
     .catch(err => console.error("❌ [RESTORE ERROR] Fetching settings:", err));
 });
 
-// Helper สำหรับส่ง JSON ไปยัง Endpoints ต่างๆ พร้อม Console Log
+// --------------------------------------------------------------------------
+// 2. Shared server communication
+// --------------------------------------------------------------------------
 async function postJSON(url, payload) {
   // 🔍 LOG: แสดงข้อมูลที่จะส่งออกไปหา Server
   console.log(`📤 [POST REQUEST] Destination: ${url}`);
@@ -42,9 +46,11 @@ async function postJSON(url, payload) {
   }
 }
 
-// ฟังก์ชันหลักสำหรับส่ง Setting ไปหา ESP32
+// --------------------------------------------------------------------------
+// 3. Selection and schedule settings
+// --------------------------------------------------------------------------
 function sendSetting(element) {
-  const container = element.closest('.setting-dropdown, .card-main');
+  const container = element.closest('.setting-form, .setting-card');
   if (!container) return;
 
   const settingType = container.getAttribute('data-setting') || element.id;
@@ -55,7 +61,7 @@ function sendSetting(element) {
   const numericValue = parseInt(inputEl.value, 10);
   const finalValue = isNaN(numericValue) ? 0 : numericValue;
 
-  console.log(`🔘 [ACTION] Output Priority / Single Setting Change triggered`);
+  console.log(`🔘 [ACTION] Inverter setting change triggered`);
 
   postJSON('/invsetting', {
     setting: settingType,
@@ -65,7 +71,9 @@ function sendSetting(element) {
   });
 }
 
-// ฟังก์ชันสำหรับ Toggle Checkbox
+// --------------------------------------------------------------------------
+// 4. Inverter mode toggles
+// --------------------------------------------------------------------------
 function toggleSetting(checkbox, settingName) {
   const status = checkbox.checked ? 1 : 0;
 
@@ -81,7 +89,9 @@ function toggleSetting(checkbox, settingName) {
   }).then(() => submitAllSettings());
 }
 
-// ฟังก์ชันส่ง Grid Cutoff & Start พร้อมกัน
+// --------------------------------------------------------------------------
+// 5. Grid schedule and dependent controls
+// --------------------------------------------------------------------------
 function GridCutToServer() {
   const gridCutOff = parseInt(document.getElementById("gridCutOff")?.value, 10) || 0;
   const gridStart = parseInt(document.getElementById("gridStart")?.value, 10) || 0;
@@ -94,6 +104,15 @@ function GridCutToServer() {
   }).then(() => submitAllSettings());
 }
 
+function restoreDefaults() {
+  if (!confirm("Restore inverter defaults?")) return;
+
+  postJSON('/invsetting', {
+    setting: 'RestoreDefaults',
+    value: 1
+  }).then(() => window.location.reload());
+}
+
 function updateGridTieUI(isAuto) {
   const gridTieOp = document.getElementById("Grid Tie Operation");
   if (gridTieOp) {
@@ -102,7 +121,9 @@ function updateGridTieUI(isAuto) {
   }
 }
 
-// บันทึกสถานะรวมลง /setting.json
+// --------------------------------------------------------------------------
+// 6. Save the complete settings state
+// --------------------------------------------------------------------------
 function submitAllSettings() {
   const data = {};
   document.querySelectorAll('input[type="checkbox"]').forEach(el => el.id && (data[el.id] = el.checked ? "1" : "0"));

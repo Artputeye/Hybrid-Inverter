@@ -1,0 +1,185 @@
+/* ========================================================================
+   STATE.CSS - Device status page styles
+   Shared shell and theme are provided by dashboard.css.
+   ======================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Page layout and main-container replacement
+   -------------------------------------------------------------------------- */
+.device-status-page {
+  width: min(680px, 100%);
+  max-width: 50%;
+  min-width: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.device-status-page h1,
+.device-status-page h2,
+.device-status-page h3,
+.device-status-page p,
+.device-status-page strong,
+.device-status-page span {
+  font-family: "DM Sans", sans-serif;
+}
+
+.status-panel {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 4px 20px rgba(29, 84, 82, .08);
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(248, 250, 252, .8);
+}
+
+.status-title h2 {
+  margin-top: 5px;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: #e9faf4;
+  color: #159a7c;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Output rating
+   -------------------------------------------------------------------------- */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.status-row:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(77, 153, 223, .08);
+}
+
+.status-row h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 100px;
+  margin-left: auto;
+  color: var(--ink);
+  text-align: right;
+}
+
+.status-value strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.status-value span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   3. Battery rating and charging limits
+   -------------------------------------------------------------------------- */
+.status-row:nth-child(5),
+.status-row:nth-child(10) {
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Fault state
+   -------------------------------------------------------------------------- */
+.status-row-alert strong {
+  color: var(--mint);
+}
+
+.status-row-alert.has-fault {
+  border-color: #f0b4b4;
+  background: #fff8f8;
+}
+
+.status-row-alert.has-fault strong {
+  color: #d65c5c;
+}
+
+/* --------------------------------------------------------------------------
+   5. Responsive layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  /* 5.1 Tablet and mobile page width */
+  .device-status-page {
+    width: 100%;
+    max-width: calc(100% - 24px);
+    padding: 24px 16px 36px;
+  }
+
+  .status-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  /* 5.2 Small mobile spacing */
+  .device-status-page {
+    padding: 20px 12px 30px;
+  }
+
+  .status-header,
+  .status-content {
+    padding: 14px;
+  }
+
+  .status-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .status-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .status-value {
+    justify-content: flex-start;
+    min-width: 0;
+    margin-left: 0;
+  }
+}

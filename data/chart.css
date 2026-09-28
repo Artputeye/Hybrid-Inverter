@@ -1,0 +1,23 @@
+/* chart.css. */
+.charts-grid { grid-template-columns: 1fr; align-items: stretch; }
+.chart-panel { min-width: 0; padding: 20px 22px; border-color: #dfe8e6; box-shadow: 0 2px 8px rgba(36, 60, 58, .08); }
+.chart-panel .panel-heading { min-width: 0; padding-bottom: 14px; border-bottom: 1px solid #edf2f1; }
+.chart-panel .panel-heading h2 { margin-top: 4px; font-size: 17px; font-weight: 500; }
+.chart-total { color: #b97c00; font-size: 16px; }
+.chart-legend { flex-wrap: wrap; justify-content: flex-end; gap: 10px 14px; font-size: 11px; }
+.chart-legend span { display: inline-flex; align-items: center; white-space: nowrap; }
+.chart-legend i { width: 9px; height: 9px; margin-right: 6px; border-radius: 50%; }
+.chart-wrap { position: relative; width: 100%; height: 230px; min-width: 0; margin-top: 14px; overflow: hidden; }
+.chart-wrap canvas { display: block; width: 100%; height: 100%; }
+
+@media (max-width: 700px) {
+  .chart-panel { padding: 18px 14px; }
+  .chart-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .chart-legend { justify-content: flex-start; }
+  .chart-wrap { height: 210px; }
+}
+
+@media (max-width: 360px) {
+  .chart-panel { padding-inline: 11px; }
+  .chart-wrap { height: 195px; }
+}

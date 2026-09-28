@@ -5,204 +5,160 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARTTECH</title>
-  <link rel="stylesheet" href="substyle.css" />
-  <link rel="stylesheet" href="mainstyle.css" />
+  <title>ARTTECH | Network Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="network.css" />
 </head>
 
 <body>
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
-
-  <!-- Cyber Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// CONTROL HUB</span></span>
-      </a>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>Network settings</p>
+      </div>
     </div>
-    <div class="navbar-actions">
-      <!-- IP Display ย้ายมาไว้ที่นี่ -->
-      <div class="sync-indicator">
-        <span class="sync-label">IP:</span>
-        <span id="esp32-ip" class="sync-time">--</span>
-      </div>
-
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">SYSTEM:</span>
-        <span class="sync-time">READY</span>
-      </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link active" href="network.html" aria-current="page"><span>◉</span> Network</a>
+      <a class="top-navigation-link" href="ota.html"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link" href="info.html"><span>&gt;_</span> Console</a>
+    </nav>
+    <div class="topbar-actions network-status">
+      <span>IP</span>
+      <strong id="esp32-ip">--</strong>
     </div>
   </header>
 
-  <!-- App Layout with Sidebar and Main Content -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item active">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="ota.html" class="nav-item">
-          <span class="nav-icon">⇪</span>
-          <span>OTA UPDATE</span>
-        </a>
-        <a href="info.html" class="nav-item">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
-
-    <!-- Central Dashboard Portal Top-Aligned -->
-    <div class="main-container">
-      <div class="blockhead">
-        <div class="blockname">
-          <p class="namehead">NETWORK SETTING</p>
+  <div class="app-shell">
+    <main class="dashboard network-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">NETWORK MANAGEMENT</p>
+          <h2>Network settings</h2>
         </div>
-      </div>
+      </section>
 
-      <div class="blockcontent">
-        <!-- //ToggleSetting////////////////////////////////////////////////////////////////////////////////////// -->
-
-        <div class="toggle-row">
-          <span class="toggle">WIFI MODE
-            <span id="wifi-mode" class="toggle-batt"></span>
-          </span>
-
-          <label class="switch">
-            <input id="wifiModeToggle" type="checkbox" onchange="wifiMode(this); toggleSetting(this, 'wifi mode')" />
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <span class="toggle">IP Config
-            <span id="ipConfig" class="toggle-batt"></span>
-          </span>
-
-          <label class="switch">
-            <input id="ipConfigToggle" type="checkbox" onchange="IPconfig(this)" />
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!--.//input field///////////////////////////////////////////////////////////////////////////////////// -->
-
-        <div class="card-main">
-          <div class="para-name"><span>WIFI SSID</span></div>
-          <form class="setting-input" data-setting="wifi_ssid">
-            <div class="form-row">
-              <input class="text-input" type="text" id="wifi_ssid" name="wifi_ssid" placeholder="WIFI" required />
+      <!-- 3. Network configuration -->
+      <section class="main-container network-panel" aria-labelledby="network-settings-title">
+        <header class="blockhead network-header">
+          <div class="blockname">
+            <div>
+              <p class="overline">CONFIGURATION</p>
+              <h2 id="network-settings-title">Connection parameters</h2>
             </div>
-          </form>
-
-          <div class="para-name"><span>WIFI pass</span></div>
-          <form class="setting-input" data-setting="wifi_pass">
-            <div class="form-row">
-              <input id="wifi_pass" type="password" aria-describedby="toggleHint" placeholder="Password" />
-              <button id="wifi_toggle" class="icon-btn" type="button" data-target="wifi_pass" aria-pressed="false"
-                aria-label="แสดงรหัสผ่าน">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-              </button>
-            </div>
-          </form>
-
-          <!-- Static IP Settings -->
-          <div class="block-ipstatic" id="ip-hide">
-            <div class="para-name"><span>IP Address</span></div>
-            <form class="setting-input" data-setting="ip_address">
-              <div class="form-row">
-                <input class="text-input" type="text" id="ip_address" name="ip_address" placeholder="192.168.1.9"
-                  required />
-              </div>
-            </form>
-
-            <div class="para-name"><span>Subnet Mask</span></div>
-            <form class="setting-input" data-setting="subnet_mask">
-              <div class="form-row">
-                <input class="text-input" type="text" id="subnet_mask" name="subnet_mask" placeholder="255.255.255.0"
-                  required />
-              </div>
-            </form>
-
-            <div class="para-name"><span>Gateway</span></div>
-            <form class="setting-input" data-setting="default_gateway">
-              <div class="form-row">
-                <input class="text-input" type="text" id="default_gateway" name="default_gateway" placeholder="192.168.1.1" required />
-              </div>
-            </form>
           </div>
+        </header>
 
-          <!-- MQTT Settings -->
-          <div class="para-name"><span>MQTT User</span></div>
-          <form class="setting-input" data-setting="mqtt_server">
-            <div class="form-row">
-              <input class="text-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="MQTT User" required />
+        <div class="blockcontent network-content">
+          <!-- 3.1 Connection mode toggles -->
+          <section class="network-group network-toggle-group" aria-label="Connection modes">
+            <div class="network-toggle">
+              <div class="network-toggle-label">
+                <span>Wi-Fi mode</span>
+                <strong id="wifi-mode">Access point</strong>
+              </div>
+              <label class="switch" for="wifiModeToggle">
+                <input id="wifiModeToggle" type="checkbox" />
+                <span class="slider"></span>
+              </label>
             </div>
-          </form>
 
-          <div class="para-name"><span>MQTT pass</span></div>
-          <form class="setting-input" data-setting="mqtt_pass">
-            <div class="form-row">
-              <input id="mqtt_pass" type="password" aria-describedby="toggleHint" placeholder="Password" />
-              <button id="mqtt-toggle" class="icon-btn" type="button" data-target="mqtt_pass" aria-pressed="false"
-                aria-label="แสดงรหัสผ่าน">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-              </button>
+            <div class="network-toggle">
+              <div class="network-toggle-label">
+                <span>IP configuration</span>
+                <strong id="ipConfig">DHCP / Static</strong>
+              </div>
+              <label class="switch" for="ipConfigToggle">
+                <input id="ipConfigToggle" type="checkbox" />
+                <span class="slider"></span>
+              </label>
             </div>
-          </form>
+          </section>
 
-          <div class="para-name"><span>MQTT Server</span></div>
-          <form class="setting-input" data-setting="mqtt_server">
-            <div class="form-row">
-              <input class="text-input" type="text" id="mqtt_server" name="mqtt_server" placeholder="192.168.1.247"
-                required />
+          <!-- 3.2 Wi-Fi credentials -->
+          <section class="network-group" aria-labelledby="wifi-settings-title">
+            <h3 class="network-group-title" id="wifi-settings-title">Wi-Fi connection</h3>
+            <div class="network-field">
+              <label for="wifi_ssid">Wi-Fi SSID</label>
+              <input class="network-input" type="text" id="wifi_ssid" name="wifi_ssid" placeholder="Network name" autocomplete="off" />
             </div>
-          </form>
+            <div class="network-field">
+              <label for="wifi_pass">Wi-Fi password</label>
+              <div class="network-input-row">
+                <input class="network-input" id="wifi_pass" type="password" placeholder="Password" autocomplete="new-password" />
+                <button class="password-toggle" type="button" data-target="wifi_pass" aria-pressed="false" aria-label="Show Wi-Fi password" title="Show password">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </section>
 
-          <div class="para-name"><span>MQTT Port</span></div>
-          <form class="setting-input" data-setting="mqtt_port">
-            <div class="form-row">
-              <input class="text-input" type="text" id="mqtt_port" name="mqtt_port" placeholder="1883" required />
+          <!-- 3.3 Static IP configuration -->
+          <section class="network-group" id="ip-hide" aria-labelledby="static-ip-title" hidden>
+            <h3 class="network-group-title" id="static-ip-title">Static IP</h3>
+            <div class="network-field">
+              <label for="ip_address">IP address</label>
+              <input class="network-input" type="text" id="ip_address" name="ip_address" placeholder="192.168.1.9" inputmode="decimal" />
             </div>
-          </form>
+            <div class="network-field">
+              <label for="subnet_mask">Subnet mask</label>
+              <input class="network-input" type="text" id="subnet_mask" name="subnet_mask" placeholder="255.255.255.0" inputmode="decimal" />
+            </div>
+            <div class="network-field">
+              <label for="default_gateway">Gateway</label>
+              <input class="network-input" type="text" id="default_gateway" name="default_gateway" placeholder="192.168.1.1" inputmode="decimal" />
+            </div>
+          </section>
+
+          <!-- 3.4 MQTT connection -->
+          <section class="network-group" aria-labelledby="mqtt-settings-title">
+            <h3 class="network-group-title" id="mqtt-settings-title">MQTT connection</h3>
+            <div class="network-field">
+              <label for="mqtt_user">MQTT user</label>
+              <input class="network-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="Username" autocomplete="username" />
+            </div>
+            <div class="network-field">
+              <label for="mqtt_pass">MQTT password</label>
+              <div class="network-input-row">
+                <input class="network-input" id="mqtt_pass" type="password" placeholder="Password" autocomplete="new-password" />
+                <button class="password-toggle" type="button" data-target="mqtt_pass" aria-pressed="false" aria-label="Show MQTT password" title="Show password">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="network-field">
+              <label for="mqtt_server">MQTT server</label>
+              <input class="network-input" type="text" id="mqtt_server" name="mqtt_server" placeholder="192.168.1.247" />
+            </div>
+            <div class="network-field">
+              <label for="mqtt_port">MQTT port</label>
+              <input class="network-input" type="number" id="mqtt_port" name="mqtt_port" placeholder="1883" inputmode="numeric" />
+            </div>
+          </section>
+
+          <!-- 3.5 Save configuration -->
+          <div class="network-actions">
+            <button class="network-save" id="save-network-config" type="button">Save</button>
+          </div>
         </div>
-
-        <div class="card-middle">
-          <button class="button-save" onclick="sendConfig()">SAVE</button>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   </div>
 
   <script src="info.js"></script>

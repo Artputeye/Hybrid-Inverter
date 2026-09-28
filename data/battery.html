@@ -5,81 +5,57 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARTTECH</title>
-  <link rel="stylesheet" href="substyle.css" />
-  <link rel="stylesheet" href="mainstyle.css" />
+  <title>ARTTECH | Battery Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="battery.css" />
 </head>
 
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
-
-  <!-- Cyber Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// CONTROL HUB</span></span>
-      </a>
-    </div>
-    <div class="navbar-actions">
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">SYSTEM:</span>
-        <span class="sync-time">READY</span>
+<body>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>Battery settings</p>
       </div>
     </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link active" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link" href="network.html"><span>◉</span> Network</a>
+      <a class="top-navigation-link" href="ota.html"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link" href="info.html"><span>&gt;_</span> Console</a>
+    </nav>
+    <div class="topbar-actions"></div>
   </header>
 
-  <!-- App Layout with Sidebar and Main Content -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="ota.html" class="nav-item active">
-          <span class="nav-icon">⇪</span>
-          <span>OTA UPDATE</span>
-        </a>
-        <a href="info.html" class="nav-item">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
+  <div class="app-shell">
+    <main class="dashboard battery-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">BATTERY MANAGEMENT</p>
+          <h2>Battery settings</h2>
+        </div>
+      </section>
 
-  <!-- Central Dashboard Portal Top-Aligned -->
-<div class="main-container">
-  <div class="blockhead">
-    <div class="blockname">
-      <p class="namehead">BATTERY SETTING</p>
-    </div>
-  </div>
+      <!-- 3. Battery settings -->
+      <section class="panel battery-panel" aria-labelledby="battery-settings-title">
+        <div class="panel-heading">
+          <div>
+            <p class="overline">CONFIGURATION</p>
+            <h2 id="battery-settings-title">Battery parameters</h2>
+          </div>
+        </div>
 
-  <div class="blockcontent">
-    <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+        <div class="battery-settings">
+              <!-- 3.1 Battery mode toggles -->
     <div class="toggle-row">
       <span class="toggle-batt">Battery Voltage
         <span id="battType" class="toggle-batt">24V</span>
@@ -106,7 +82,7 @@
   </label>
 </div>
 
-    <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <!-- 3.2 Battery selection settings -->
     <div class="card-main">
       <div class="card-name"><span>Charger Source Priority</span></div>
       <form class="setting-dropdown" data-setting="ChargerSourcePriority">
@@ -206,7 +182,7 @@
       </form>
     </div>
 
-    <!--.//input field////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <!-- 3.3 Battery voltage settings -->
 
     <div class="card-main">
       <div class="card-name">
@@ -302,20 +278,11 @@
     </div>
 
 
-    <!-- <button class="button-save" type="button" onclick="collectAndSendSettings()">SAVE</button> -->
-
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div class="blockdummy"></div>
-
-</div>
-<!-- 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>&copy; 2025 www.arttech.com copyright.</p>
-        </div>
-    </footer>
- -->
 <script src="battery.js"></script>
 </body>
 

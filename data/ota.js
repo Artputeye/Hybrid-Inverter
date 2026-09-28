@@ -1,102 +1,134 @@
-// Toggle file/folder input mode
+/* --------------------------------------------------------------------------
+   1. Upload source mode
+   -------------------------------------------------------------------------- */
 function toggleMode(mode) {
   const fileGroup = document.getElementById("fileInputGroup");
   const folderGroup = document.getElementById("folderInputGroup");
 
-  if (mode === "file") {
-    fileGroup.classList.remove("hidden");
-    folderGroup.classList.add("hidden");
-  } else {
-    fileGroup.classList.add("hidden");
-    folderGroup.classList.remove("hidden");
-  }
-
-  document.getElementById("file-name").textContent = "No file chosen";
+  fileGroup.hidden = mode !== "file";
+  folderGroup.hidden = mode !== "folder";
+  document.getElementById("file").value = "";
+  document.getElementById("folder").value = "";
+  updateSelectedFiles([]);
 }
 
-// Show selected file/folder info
-document.addEventListener("DOMContentLoaded", () => {
+/* --------------------------------------------------------------------------
+   2. Payload selection and display
+   -------------------------------------------------------------------------- */
+function updateSelectedFiles(files) {
+  const display = document.getElementById("file-name");
+  if (!files || files.length === 0) {
+    display.textContent = "No file chosen";
+  } else if (files.length === 1) {
+    display.textContent = files[0].name;
+  } else {
+    display.textContent = `${files.length} files selected`;
+  }
+}
+
+function initializePayloadSelection() {
   const fileInput = document.getElementById("file");
   const folderInput = document.getElementById("folder");
-  const display = document.getElementById("file-name");
 
-  function updateDisplay(files) {
-    if (!files || files.length === 0) display.textContent = "No file chosen";
-    else if (files.length === 1) display.textContent = files[0].name;
-    else display.textContent = files.length + " files selected";
-  }
+  fileInput.addEventListener("change", () => updateSelectedFiles(fileInput.files));
+  folderInput.addEventListener("change", () => updateSelectedFiles(folderInput.files));
+  document.getElementById("radioFile").addEventListener("change", () => toggleMode("file"));
+  document.getElementById("radioFolder").addEventListener("change", () => toggleMode("folder"));
+  toggleMode("file");
+}
 
-  fileInput.addEventListener("change", () => updateDisplay(fileInput.files));
-  folderInput.addEventListener("change", () => updateDisplay(folderInput.files));
-});
+/* --------------------------------------------------------------------------
+   3. Upload progress and request workflow
+   -------------------------------------------------------------------------- */
+function updateProgress(value) {
+  const progress = document.getElementById("progress");
+  const progressValue = document.getElementById("progress-value");
+  const boundedValue = Math.max(0, Math.min(100, value));
 
-// Upload function
+  progress.value = boundedValue;
+  progressValue.textContent = `${Math.round(boundedValue)}%`;
+}
+
+function setUploading(isUploading) {
+  const button = document.getElementById("upload-button");
+  button.disabled = isUploading;
+  button.textContent = isUploading ? "Uploading..." : "Start flashing";
+}
+
 function upload() {
   const fileInput = document.getElementById("file");
   const folderInput = document.getElementById("folder");
+  const isFolderMode = document.getElementById("radioFolder").checked;
+  const files = Array.from(isFolderMode ? folderInput.files : fileInput.files);
   const type = document.getElementById("type").value;
-  const progress = document.getElementById("progress");
 
-  let files = [];
-  if (document.getElementById("radioFolder").checked && folderInput.files.length > 0) {
-    files = Array.from(folderInput.files);
-  } else if (document.getElementById("radioFile").checked && fileInput.files.length > 0) {
-    files = Array.from(fileInput.files);
-  } else {
+  if (files.length === 0) {
     alert("Please select files or folder to upload");
     return;
   }
 
-  let totalSize = files.reduce((sum, f) => sum + f.size, 0);
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
   let uploaded = 0;
+  updateProgress(0);
+  setUploading(true);
 
   function uploadFile(index) {
     if (index >= files.length) {
+      updateProgress(100);
+      setUploading(false);
       alert("All uploads complete!");
-      progress.value = 0;
       return;
     }
 
     const file = files[index];
     const path = file.webkitRelativePath || file.name;
-
     const formData = new FormData();
     formData.append("file", file, path);
     formData.append("type", type);
 
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) {
-        const currentProgress = ((uploaded + e.loaded) / totalSize) * 100;
-        progress.value = currentProgress;
-        console.log("Overall Progress: " + currentProgress.toFixed(2) + "%");
+    const request = new XMLHttpRequest();
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const currentProgress = totalSize === 0
+          ? 100
+          : ((uploaded + event.loaded) / totalSize) * 100;
+        updateProgress(currentProgress);
       }
     };
 
-    xhr.onload = () => {
-      if (xhr.status === 200) {
+    request.onload = () => {
+      if (request.status === 200) {
         uploaded += file.size;
-        const currentProgress = ((uploaded / totalSize) * 100).toFixed(1);
-        console.log(
-          `[Success] Uploaded: "${path}" | Total Progress: ${currentProgress}% (${index + 1}/${files.length} files done)`
-        );
+        console.log(`[Success] Uploaded "${path}" (${index + 1}/${files.length})`);
         uploadFile(index + 1);
-      } else {
-        console.error(`[Failed] Upload failed for "${path}" with status ${xhr.status}`);
-        alert("Upload failed: " + xhr.responseText);
-        progress.value = 0;
+        return;
       }
+
+      console.error(`[Failed] Upload failed for "${path}" with status ${request.status}`);
+      setUploading(false);
+      updateProgress(0);
+      alert("Upload failed: " + request.responseText);
     };
 
-    xhr.onerror = () => {
+    request.onerror = () => {
+      setUploading(false);
+      updateProgress(0);
       alert("Network error while uploading " + path);
-      progress.value = 0;
     };
 
-    xhr.open("POST", "/" + type);
-    xhr.send(formData);
+    request.open("POST", `/${type}`);
+    request.send(formData);
   }
 
   uploadFile(0);
 }
+
+/* --------------------------------------------------------------------------
+   4. Page initialization
+   -------------------------------------------------------------------------- */
+function initializeOtaPage() {
+  initializePayloadSelection();
+  document.getElementById("upload-button").addEventListener("click", upload);
+}
+
+document.addEventListener("DOMContentLoaded", initializeOtaPage);

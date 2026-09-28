@@ -4,114 +4,81 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARTTECH // Web Serial Console</title>
-
-  <!-- Cyber Tech Fonts -->
+  <title>ARTTECH | Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="mainstyle.css" />
-  <link rel="stylesheet" href="substyle.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="info.css" />
 </head>
 <body>
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
-
-  <!-- Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// VOLTFLOW</span></span>
-      </a>
-    </div>
-    <div class="navbar-actions">
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">IP_ADDR:</span>
-        <span id="device_ip" class="sync-time">--.--.--.--</span>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>Device console</p>
       </div>
+    </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link" href="network.html"><span>◉</span> Network</a>
+      <a class="top-navigation-link" href="ota.html"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link active" href="info.html" aria-current="page"><span>&gt;_</span> Console</a>
+    </nav>
+    <div class="topbar-actions info-device-status">
+      <span>IP</span>
+      <strong id="device_ip">--</strong>
     </div>
   </header>
 
-  <!-- App Layout with Sidebar -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="info.html" class="nav-item active">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
+  <div class="app-shell">
+    <main class="dashboard info-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">DEVICE DIAGNOSTICS</p>
+          <h2>Console</h2>
+        </div>
+      </section>
 
-    <!-- Main Viewport -->
-    <main class="dashboard-viewport">
-      <div class="settings-container">
-        
-        <!-- Console Header Banner -->
-        <div class="settings-page-header">
+      <!-- 3. Live console -->
+      <section class="info-panel" aria-labelledby="console-title">
+        <header class="info-header">
           <div>
-            <h2 class="settings-title">WEB SERIAL TERMINAL &amp; CONSOLE</h2>
-            <p class="settings-subtitle">Direct Inverter Command Line &amp; Real-time Telemetry Stream</p>
+            <p class="overline">REAL-TIME STREAM</p>
+            <h2 id="console-title">Inverter terminal</h2>
           </div>
-          <span class="cyber-badge">&gt;_ BUS_ONLINE</span>
-        </div>
+          <span class="connection-state" id="connectionState" role="status" aria-live="polite">
+            <span class="connection-indicator" id="connectionIndicator"></span>
+            <span id="connectionLabel">Connecting</span>
+          </span>
+        </header>
 
-        <!-- Terminal Output Window -->
-        <div class="panel-card console-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">LIVE_TERMINAL_OUTPUT</h3>
-            <span class="status-live-tag"><span class="pulse-dot"></span> STREAMING</span>
-          </div>
-
-          <div class="terminal" id="terminal">
-            <div class="empty-state">
-              <span class="empty-state-icon">&gt;_</span>
-              <p>System initialized. Ready for serial commands...</p>
+        <div class="info-content">
+          <!-- 3.1 Terminal output -->
+          <section class="console-card" aria-labelledby="terminal-title">
+            <header class="console-header">
+              <h3 id="terminal-title">Live output</h3>
+              <button class="console-clear" id="clearBtn" type="button">Clear</button>
+            </header>
+            <div class="terminal" id="terminal" role="log" aria-live="polite" aria-relevant="additions text">
+              <p class="terminal-empty" id="terminalEmpty">Waiting for device messages...</p>
             </div>
-          </div>
+          </section>
 
-          <!-- Command Input Section -->
-          <div class="input-section">
-            <input 
-              type="text" 
-              class="message-input cyber-input" 
-              id="messageInput" 
-              placeholder="Enter command (e.g., QPIRI, QPIWS)..." 
-            />
-            <button class="button-set send-btn" id="sendBtn">SEND</button>
-            <button class="button-set clear-btn" id="clearBtn">CLEAR</button>
-          </div>
+          <!-- 3.2 Command input -->
+          <form class="console-command" id="commandForm">
+            <label class="visually-hidden" for="messageInput">Inverter command</label>
+            <input class="command-input" type="text" id="messageInput" placeholder="Enter inverter command" autocomplete="off" />
+            <button class="command-send" id="sendBtn" type="submit">Send</button>
+          </form>
         </div>
-
-      </div>
+      </section>
     </main>
   </div>
 

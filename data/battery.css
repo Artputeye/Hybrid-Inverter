@@ -1,0 +1,279 @@
+/* ==========================================================================
+   BATTERY.CSS - Battery settings page styles
+   Uses the shared dashboard theme from dashboard.css.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Page layout
+   -------------------------------------------------------------------------- */
+/* Battery page width: keep the desktop view at no more than half the viewport. */
+.dashboard.battery-page {
+  width: min(768px, 100%);
+  max-width: 50%;
+  min-width: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.dashboard.battery-page h1,
+.dashboard.battery-page h2,
+.dashboard.battery-page p,
+.dashboard.battery-page button,
+.dashboard.battery-page input,
+.dashboard.battery-page select {
+  font-family: "DM Sans", sans-serif;
+}
+
+.battery-panel {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 4px 20px rgba(29, 84, 82, .08);
+}
+
+.battery-panel > .panel-heading {
+  margin-bottom: 20px;
+}
+
+.battery-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Battery mode toggles
+   -------------------------------------------------------------------------- */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.toggle-row:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(77, 153, 223, .08);
+}
+
+.toggle-batt,
+.toggle-text {
+  color: var(--ink);
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.toggle-batt #battType {
+  margin-left: 6px;
+  color: var(--blue);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex: 0 0 44px;
+  margin-left: auto;
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 24px;
+  background: #c9d7d8;
+  transition: background .2s ease;
+}
+
+.slider::before {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  content: "";
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 4px rgba(23, 59, 64, .2);
+  transition: transform .2s ease;
+}
+
+.switch input:checked + .slider {
+  background: var(--mint);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.switch input:focus-visible + .slider {
+  outline: 3px solid rgba(77, 153, 223, .28);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   3. Battery selection settings
+   -------------------------------------------------------------------------- */
+.card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.card-main:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(77, 153, 223, .08);
+}
+
+.card-name {
+  color: var(--muted);
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.setting-dropdown,
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.form-row select,
+.input-batt {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 13px "DM Sans", sans-serif;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.form-row select:focus,
+.input-batt:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(77, 153, 223, .14);
+}
+
+/* --------------------------------------------------------------------------
+   4. Battery voltage settings
+   -------------------------------------------------------------------------- */
+.input-batt {
+  flex: 1;
+}
+
+.card-name span span {
+  margin-left: 6px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   5. Actions and validation messages
+   -------------------------------------------------------------------------- */
+.button-set {
+  margin-left: auto;
+  min-width: 72px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--mint);
+  color: #fff;
+  font: 700 12px "DM Sans", sans-serif;
+  letter-spacing: .3px;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.button-set:hover {
+  background: #159a7c;
+  box-shadow: 0 5px 12px rgba(35, 185, 154, .2);
+  transform: translateY(-1px);
+}
+
+.button-set:active {
+  transform: translateY(0);
+}
+
+.error-container {
+  display: none;
+  margin-top: -2px;
+  color: #d65c5c;
+  font-size: 11px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Responsive layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  /* 6.1 Tablet and mobile page width */
+  .dashboard.battery-page {
+    width: 100%;
+    max-width: calc(100% - 24px);
+    padding: 24px 16px 36px;
+  }
+
+  .battery-panel {
+    padding: 18px;
+  }
+
+  .top-navigation {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  /* 6.2 Small mobile spacing and stacked controls */
+  .dashboard.battery-page {
+    padding: 20px 12px 30px;
+  }
+
+  .battery-panel {
+    padding: 14px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-row select,
+  .input-batt {
+    width: 100%;
+  }
+
+  .button-set {
+    align-self: flex-end;
+    min-width: 64px;
+    padding: 0 12px;
+  }
+}

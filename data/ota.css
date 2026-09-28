@@ -1,136 +1,297 @@
-/* ==========================================================================
-   VoltFlow - OTA Firmware Upgrade Styling (ota.css)
-   ========================================================================== */
+/* ========================================================================
+   OTA.CSS - Firmware update page styles
+   Shared shell and theme are provided by dashboard.css.
+   ======================================================================== */
 
-.hidden {
-  display: none !important;
+/* --------------------------------------------------------------------------
+   1. Page layout and update panel
+   -------------------------------------------------------------------------- */
+.ota-page {
+  width: min(680px, 100%);
+  max-width: 50%;
+  min-width: 0;
+  font-family: "DM Sans", sans-serif;
 }
 
-.upload-card-area {
+.ota-page h1,
+.ota-page h2,
+.ota-page h3,
+.ota-page p,
+.ota-page button,
+.ota-page input,
+.ota-page select {
+  font-family: "DM Sans", sans-serif;
+}
+
+.ota-panel {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 4px 20px rgba(29, 84, 82, .08);
+}
+
+.ota-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(248, 250, 252, .8);
+}
+
+.ota-header h2 {
+  margin-top: 5px;
+}
+
+.ota-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 12px;
-  text-align: center;
+  gap: 12px;
+  padding: 20px;
 }
 
-/* Radio Switch Segment Controls */
-.cyber-radio-group {
+/* --------------------------------------------------------------------------
+   2. Partition, source mode, and payload cards
+   -------------------------------------------------------------------------- */
+.ota-card {
   display: flex;
-  gap: 8px;
-  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-.cyber-radio-label {
-  flex: 1;
-  position: relative;
-  cursor: pointer;
+.ota-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(77, 153, 223, .08);
 }
 
-.cyber-radio-label input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.radio-btn-text {
-  display: block;
-  text-align: center;
-  padding: 8px 10px;
-  background: var(--sub-bg-card-solid);
-  border: 1px solid var(--sub-border-color);
-  border-radius: 6px;
-  font-family: var(--sub-font-mono);
-  font-size: 0.72rem;
+.ota-label {
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 700;
-  color: var(--sub-text-muted);
-  transition: all 0.2s ease;
 }
 
-.cyber-radio-label input[type="radio"]:checked + .radio-btn-text {
-  background: rgba(0, 180, 216, 0.1);
-  border-color: var(--sub-accent-cyan);
-  color: var(--sub-accent-cyan);
-  box-shadow: 0 0 0 1px var(--sub-accent-cyan);
-}
-
-/* Custom Cyber File Upload Button */
-.file-input-group {
+.ota-select {
   width: 100%;
-  margin-top: 4px;
+  min-width: 0;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 13px "DM Sans", sans-serif;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-.custom-file-upload {
-  display: inline-flex;
+.ota-select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(77, 153, 223, .14);
+}
+
+.ota-source-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ota-source-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color .2s ease, background .2s ease;
+}
+
+.ota-source-option input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+.ota-source-option span {
+  overflow-wrap: anywhere;
+}
+
+.ota-source-option input:checked + span {
+  color: #287bbd;
+  font-weight: 700;
+}
+
+.ota-file-group {
+  width: 100%;
+}
+
+.ota-file-group[hidden] {
+  display: none;
+}
+
+.ota-file-picker {
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 40px;
-  background: var(--sub-bg-card-solid);
-  border: 1px dashed var(--sub-accent-cyan);
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px dashed var(--blue);
   border-radius: 6px;
-  color: var(--sub-accent-cyan);
-  font-family: var(--sub-font-mono);
-  font-size: 0.78rem;
-  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.custom-file-upload:hover {
-  background: rgba(0, 180, 216, 0.08);
-  border-style: solid;
-}
-
-.file-name {
-  display: block;
-  font-family: var(--sub-font-mono);
-  font-size: 0.72rem;
+  background: rgba(77, 153, 223, .04);
+  color: #287bbd;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--sub-accent-green);
-  margin-top: 10px;
-  word-break: break-all;
+  text-align: center;
+  transition: border-color .2s ease, background .2s ease;
 }
 
-/* Flash Execution Trigger */
-.btn-upload-flash {
+.ota-file-picker:hover,
+.ota-file-picker:focus-within {
+  border-style: solid;
+  background: rgba(77, 153, 223, .1);
+}
+
+.ota-file-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.ota-file-name {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------------------------
+   3. Upload action and progress
+   -------------------------------------------------------------------------- */
+.ota-upload-button {
   width: 100%;
-  height: 38px;
-  font-size: 0.78rem;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  background: var(--mint);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
 }
 
-/* Progress Bar Container */
-.progress-bar-wrapper {
-  margin-top: 10px;
+.ota-upload-button:hover {
+  background: #159a7c;
+  box-shadow: 0 5px 12px rgba(35, 185, 154, .2);
+  transform: translateY(-1px);
+}
+
+.ota-upload-button:active {
+  transform: translateY(0);
+}
+
+.ota-upload-button:disabled {
+  cursor: wait;
+  opacity: .7;
+  transform: none;
+}
+
+.ota-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
 }
 
-progress {
+.ota-progress-wrap progress {
+  display: block;
   width: 100%;
   height: 8px;
+  flex: 1 1 auto;
   appearance: none;
-  -webkit-appearance: none;
-  border: none;
+  border: 0;
   border-radius: 4px;
-  background-color: var(--sub-border-color);
   overflow: hidden;
+  background: var(--line);
 }
 
-progress::-webkit-progress-bar {
-  background-color: var(--sub-border-color);
+.ota-progress-wrap progress::-webkit-progress-bar {
   border-radius: 4px;
+  background: var(--line);
 }
 
-progress::-webkit-progress-value {
-  background: linear-gradient(90deg, var(--sub-accent-cyan), var(--sub-accent-green));
+.ota-progress-wrap progress::-webkit-progress-value {
   border-radius: 4px;
-  transition: width 0.2s ease;
+  background: linear-gradient(90deg, var(--blue), var(--mint));
+  transition: width .2s ease;
 }
 
-progress::-moz-progress-bar {
-  background: linear-gradient(90deg, var(--sub-accent-cyan), var(--sub-accent-green));
+.ota-progress-wrap progress::-moz-progress-bar {
   border-radius: 4px;
+  background: linear-gradient(90deg, var(--blue), var(--mint));
+}
+
+.ota-progress-wrap output {
+  min-width: 38px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .ota-page {
+    width: 100%;
+    max-width: calc(100% - 24px);
+    padding: 24px 16px 36px;
+  }
+
+  .ota-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  .ota-page {
+    padding: 20px 12px 30px;
+  }
+
+  .ota-header,
+  .ota-content {
+    padding: 14px;
+  }
+
+  .ota-card {
+    padding: 12px;
+  }
+
+  .ota-source-options {
+    grid-template-columns: 1fr;
+  }
 }

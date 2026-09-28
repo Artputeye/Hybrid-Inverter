@@ -1,193 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARTTECH</title>
-    <link rel="stylesheet" href="substyle.css">
-    <link rel="stylesheet" href="mainstyle.css">
-</head>
-<body >
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
 
-  <!-- Cyber Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// CONTROL HUB</span></span>
-      </a>
-    </div>
-    <div class="navbar-actions">
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">SYSTEM:</span>
-        <span class="sync-time">READY</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH | Device Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="state.css" />
+</head>
+
+<body>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>Device status</p>
       </div>
     </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link active" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link" href="network.html"><span>◉</span> Network</a>
+      <a class="top-navigation-link" href="ota.html"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link" href="info.html"><span>&gt;_</span> Console</a>
+    </nav>
+    <div class="topbar-actions"></div>
   </header>
 
-    <!-- App Layout with Sidebar and Main Content -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="ota.html" class="nav-item active">
-          <span class="nav-icon">⇪</span>
-          <span>OTA UPDATE</span>
-        </a>
-        <a href="info.html" class="nav-item">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
-
-  <!-- Central Dashboard Portal Top-Aligned -->
-    <div class="main-container">
-        <div class="blockhead">
-            <div class="blockname">
-                <p class="namehead">DEVICE STATUS</p>
-            </div>  
+  <div class="app-shell">
+    <main class="dashboard device-status-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">INVERTER MONITORING</p>
+          <h2>Device status</h2>
         </div>
+      </section>
 
-        <div class="blockcontent">
-            <div class="display-row">
-                <div class="label">Output Rating Voltage</div>
-                <div class="value-container">
-                    <div id="Output Rating Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
-            
-            <div class="display-row">
-                <div class="label">Output Rating Current</div>
-                <div class="value-container">
-                    <div id="Output Rating Current" class="value">--</div>
-                    <div class="unit">A</div>
-                </div>
-            </div>
+      <!-- 3. Device status panel -->
+      <section class="status-panel" aria-labelledby="device-status-title">
+        <header class="status-header">
+          <div class="status-title">
+            <p class="overline">LIVE INFORMATION</p>
+            <h2 id="device-status-title">Device parameters</h2>
+          </div>
+          <span class="status-indicator"><span class="live-dot"></span>LIVE</span>
+        </header>
 
-            <div class="display-row">
-                <div class="label">Output Rating Frequency</div>
-                <div class="value-container">
-                    <div id="Output Rating Frequency" class="value">--</div>
-                    <div class="unit">Hz</div>
-                </div>
-            </div>
+        <div class="status-content">
+          <!-- 3.1 Output rating -->
+          <article class="status-row">
+            <h3>Output Rating Voltage</h3>
+            <div class="status-value"><strong id="Output Rating Voltage">--</strong><span>V</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Output Rating Current</h3>
+            <div class="status-value"><strong id="Output Rating Current">--</strong><span>A</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Output Rating Frequency</h3>
+            <div class="status-value"><strong id="Output Rating Frequency">--</strong><span>Hz</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Output Rating Active Power</h3>
+            <div class="status-value"><strong id="Output Rating Active Power">--</strong><span>W</span></div>
+          </article>
 
-            <div class="display-row">
-                <div class="label">Output Rating Active Power</div>
-                <div class="value-container">
-                    <div id="Output Rating Active Power" class="value">--</div>
-                    <div class="unit">W</div>
-                </div>
-            </div>
+          <!-- 3.2 Battery rating -->
+          <article class="status-row">
+            <h3>Battery Rating Voltage</h3>
+            <div class="status-value"><strong id="Battery Rating Voltage">--</strong><span>V</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Battery Re-charge Voltage</h3>
+            <div class="status-value"><strong id="Battery Re-charge Voltage">--</strong><span>V</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Battery Under Voltage</h3>
+            <div class="status-value"><strong id="Battery Under Voltage">--</strong><span>V</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Battery Bulk Voltage</h3>
+            <div class="status-value"><strong id="Battery Bulk Voltage">--</strong><span>V</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Battery Float Voltage</h3>
+            <div class="status-value"><strong id="Battery Float Voltage">--</strong><span>V</span></div>
+          </article>
 
-            <div class="display-row">
-                <div class="label">Battery Rating Voltage</div>
-                <div class="value-container">
-                    <div id="Battery Rating Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
+          <!-- 3.3 Charging limits -->
+          <article class="status-row">
+            <h3>Max AC Charging Current</h3>
+            <div class="status-value"><strong id="Max AC Charging Current">--</strong><span>A</span></div>
+          </article>
+          <article class="status-row">
+            <h3>Max Charging Current</h3>
+            <div class="status-value"><strong id="Max Charging Current">--</strong><span>A</span></div>
+          </article>
 
-            <div class="display-row">
-                <div class="label">Battery Re-charge Voltage</div>
-                <div class="value-container">
-                    <div id="Battery Re-charge Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
-
-            <div class="display-row">
-                <div class="label">Battery Under Voltage</div>
-                <div class="value-container">
-                    <div id="Battery Under Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
-
-            <div class="display-row">
-                <div class="label">Battery Bulk Voltage</div>
-                <div class="value-container">
-                    <div id="Battery Bulk Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
-
-            <div class="display-row">
-                <div class="label">Battery Float Voltage</div>
-                <div class="value-container">
-                    <div id="Battery Float Voltage" class="value">--</div>
-                    <div class="unit">V</div>
-                </div>
-            </div>
-
-            <div class="display-row">
-                <div class="label">Max AC Charging Current</div>
-                <div class="value-container">
-                    <div id="Max AC Charging Current" class="value">--</div>
-                    <div class="unit">A</div>
-                </div>
-            </div>
-            
-            <div class="display-row">
-                <div class="label">Max Charging Current</div>
-                <div class="value-container">
-                    <div id="Max Charging Current" class="value">--</div>
-                    <div class="unit">A</div>
-                </div>
-            </div>            
-            
-            <div class="display-row">
-                <div class="label">Fault</div>
-                <div class="value-container">
-                    <div id="Inverter Faults" class="value">Normal</div>
-                    <div class="unit"></div>
-                </div>
-            </div>   
-
-
+          <!-- 3.4 Fault state -->
+          <article class="status-row status-row-alert">
+            <h3>Fault</h3>
+            <div class="status-value"><strong id="Inverter Faults">Normal</strong></div>
+          </article>
         </div>
-        <div class="blockdummy"></div>  
+      </section>
+    </main>
+  </div>
 
-    </div>
-
-<!-- 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>&copy; 2025 www.arttech.com copyright.</p>
-        </div>
-    </footer>
- -->
-    <script src="monitor.js"></script>
-
+  <script src="state.js"></script>
 </body>
+
 </html>

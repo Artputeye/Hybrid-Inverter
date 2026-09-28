@@ -4,155 +4,108 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARTTECH // Firmware OTA Update</title>
-
-  <!-- Cyber Tech Google Fonts -->
+  <title>ARTTECH | Firmware Update</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Style Sheets -->
-  <link rel="stylesheet" href="mainstyle.css" />
-  <link rel="stylesheet" href="substyle.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
   <link rel="stylesheet" href="ota.css" />
 </head>
 <body>
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
-
-  <!-- Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// VOLTFLOW</span></span>
-      </a>
-    </div>
-    <div class="navbar-actions">
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">SYSTEM_MODE:</span>
-        <span class="sync-time">OTA_FLASH</span>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>Firmware update</p>
       </div>
     </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link" href="network.html"><span>◉</span> Network</a>
+      <a class="top-navigation-link active" href="ota.html" aria-current="page"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link" href="info.html"><span>&gt;_</span> Console</a>
+    </nav>
+    <div class="topbar-actions"></div>
   </header>
 
-  <!-- App Layout with Sidebar and Main Content -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="ota.html" class="nav-item active">
-          <span class="nav-icon">⇪</span>
-          <span>OTA UPDATE</span>
-        </a>
-        <a href="info.html" class="nav-item">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
-
-    <!-- Main Viewport Top-Aligned -->
-    <main class="dashboard-viewport" style="align-items: center; justify-content: flex-start; min-height: calc(100vh - 60px); padding: 16px 12px 24px 12px;">
-      <div class="main-container">
-        
-        <!-- Header Block -->
-        <div class="blockhead">
-          <div class="blockname">
-            <p class="namehead">OTA FIRMWARE UPDATE</p>
-          </div>
+  <div class="app-shell">
+    <main class="dashboard ota-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">DEVICE MAINTENANCE</p>
+          <h2>OTA firmware update</h2>
         </div>
+      </section>
 
-        <!-- Block Content -->
-        <div class="blockcontent">
-          
-          <!-- Mode Select Card -->
-          <div class="card-main">
-            <div class="card-name"><span>FLASH_TARGET_PARTITION</span></div>
-            <div class="form-row">
-              <select id="type" class="cyber-select">
-                <option value="otafirmware">Firmware Image (.bin)</option>
-                <option value="otalittlefs">LittleFS Filesystem (.bin)</option>
-              </select>
-            </div>
+      <!-- 3. Firmware update workflow -->
+      <section class="ota-panel" aria-labelledby="ota-panel-title">
+        <header class="ota-header">
+          <div>
+            <p class="overline">CONFIGURATION</p>
+            <h2 id="ota-panel-title">Update image</h2>
           </div>
+        </header>
 
-          <!-- Selection Source Mode Radio Switch -->
-          <div class="card-main">
-            <div class="card-name"><span>UPLOAD_SOURCE_MODE</span></div>
-            <div class="cyber-radio-group">
-              <label class="cyber-radio-label">
-                <input type="radio" name="uploadMode" id="radioFile" checked onchange="toggleMode('file')">
-                <span class="radio-btn-text">📄 Single File</span>
+        <div class="ota-content">
+          <!-- 3.1 Target partition -->
+          <section class="ota-card" aria-labelledby="partition-label">
+            <label class="ota-label" id="partition-label" for="type">Target partition</label>
+            <select id="type" class="ota-select">
+              <option value="otafirmware">Firmware image (.bin)</option>
+              <option value="otalittlefs">LittleFS filesystem (.bin)</option>
+            </select>
+          </section>
+
+          <!-- 3.2 Upload source -->
+          <fieldset class="ota-card ota-source-card">
+            <legend class="ota-label">Upload source</legend>
+            <div class="ota-source-options">
+              <label class="ota-source-option">
+                <input type="radio" name="uploadMode" id="radioFile" checked>
+                <span>Single file</span>
               </label>
-              <label class="cyber-radio-label">
-                <input type="radio" name="uploadMode" id="radioFolder" onchange="toggleMode('folder')">
-                <span class="radio-btn-text">📂 Directory Folder</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- File Upload Actions Card -->
-          <div class="card-main upload-card-area">
-            <div class="card-name"><span>SELECT_PAYLOAD</span></div>
-
-            <!-- Single File Selector -->
-            <div id="fileInputGroup" class="file-input-group">
-              <label class="custom-file-upload">
-                <input type="file" id="file" multiple hidden>
-                <span>📁 Browse Binaries</span>
+              <label class="ota-source-option">
+                <input type="radio" name="uploadMode" id="radioFolder">
+                <span>Directory folder</span>
               </label>
             </div>
+          </fieldset>
 
-            <!-- Folder Selector -->
-            <div id="folderInputGroup" class="file-input-group hidden">
-              <label class="custom-file-upload">
-                <input type="file" id="folder" webkitdirectory multiple hidden>
-                <span>📂 Browse Folder</span>
+          <!-- 3.3 Payload selection -->
+          <section class="ota-card" aria-labelledby="payload-title">
+            <h3 class="ota-label" id="payload-title">Select payload</h3>
+            <div id="fileInputGroup" class="ota-file-group">
+              <label class="ota-file-picker">
+                <input type="file" id="file" multiple>
+                <span>Browse binaries</span>
               </label>
             </div>
-
-            <span id="file-name" class="file-name">No file chosen</span>
-          </div>
-
-          <!-- Progress and Trigger Action -->
-          <div class="card-main">
-            <div class="card-name"><span>FLASH_EXECUTION</span></div>
-            <button class="button-set btn-upload-flash" onclick="upload()">START FLASHING</button>
-            
-            <div class="progress-bar-wrapper">
-              <progress id="progress" max="100" value="0"></progress>
+            <div id="folderInputGroup" class="ota-file-group" hidden>
+              <label class="ota-file-picker">
+                <input type="file" id="folder" webkitdirectory multiple>
+                <span>Browse folder</span>
+              </label>
             </div>
-          </div>
+            <p id="file-name" class="ota-file-name" aria-live="polite">No file chosen</p>
+          </section>
 
+          <!-- 3.4 Upload progress and action -->
+          <section class="ota-card" aria-labelledby="flash-title">
+            <h3 class="ota-label" id="flash-title">Flash execution</h3>
+            <button class="ota-upload-button" id="upload-button" type="button">Start flashing</button>
+            <div class="ota-progress-wrap">
+              <progress id="progress" max="100" value="0" aria-label="Upload progress"></progress>
+              <output id="progress-value" for="progress">0%</output>
+            </div>
+          </section>
         </div>
-
-      </div>
+      </section>
     </main>
   </div>
 

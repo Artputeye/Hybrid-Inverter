@@ -1,0 +1,188 @@
+/* ========================================================================
+   FILELIST.CSS - File manager page styles
+   Shared layout and theme are provided by dashboard.css.
+   ======================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Page layout
+   -------------------------------------------------------------------------- */
+.dashboard.filelist-page {
+  width: min(960px, 100%);
+  max-width: 50%;
+  min-width: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.dashboard.filelist-page h1,
+.dashboard.filelist-page h2,
+.dashboard.filelist-page p,
+.dashboard.filelist-page button,
+.dashboard.filelist-page table {
+  font-family: "DM Sans", sans-serif;
+}
+
+.filelist-panel {
+  width: 100%;
+}
+
+.filelist-panel > .panel-heading {
+  margin-bottom: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   2. File table
+   -------------------------------------------------------------------------- */
+.file-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.file-table {
+  width: 100%;
+  min-width: 430px;
+  border-collapse: collapse;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.file-table th {
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--line);
+  background: rgba(248, 250, 252, .8);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.file-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.file-table tbody tr {
+  transition: background .2s ease;
+}
+
+.file-table tbody tr:hover {
+  background: rgba(77, 153, 223, .06);
+}
+
+.file-table th:first-child,
+.file-table td:first-child {
+  width: 20%;
+}
+
+.file-table th:nth-child(2),
+.file-table td:nth-child(2) {
+  width: 55%;
+  overflow-wrap: anywhere;
+}
+
+.actions-heading,
+.actions-cell {
+  width: 25%;
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   3. File badges and action buttons
+   -------------------------------------------------------------------------- */
+.file-badge {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+.file-badge.dir {
+  border-color: var(--blue);
+  background: rgba(77, 153, 223, .1);
+  color: var(--blue);
+}
+
+.file-badge.file {
+  border-color: var(--mint);
+  background: rgba(35, 185, 154, .1);
+  color: #159a7c;
+}
+
+.delete-button {
+  min-width: 72px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0 12px;
+  border: 1px solid #d65c5c;
+  border-radius: 7px;
+  cursor: pointer;
+  background: transparent;
+  color: #d65c5c;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.delete-button:hover {
+  background: #d65c5c;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(214, 92, 92, .2);
+}
+
+.empty-message {
+  padding: 22px 12px !important;
+  color: var(--muted);
+  text-align: center;
+}
+
+.error-message {
+  color: #d65c5c;
+}
+
+/* --------------------------------------------------------------------------
+   4. Responsive layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  /* 4.1 Tablet and mobile page width */
+  .dashboard.filelist-page {
+    width: 100%;
+    max-width: calc(100% - 24px);
+    padding: 24px 16px 36px;
+  }
+
+  .filelist-panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  /* 4.2 Small mobile spacing */
+  .dashboard.filelist-page {
+    padding: 20px 12px 30px;
+  }
+
+  .filelist-panel {
+    padding: 14px;
+  }
+
+  .file-table {
+    min-width: 390px;
+    font-size: 12px;
+  }
+
+  .file-table th,
+  .file-table td {
+    padding: 10px 8px;
+  }
+
+  .delete-button {
+    min-width: 64px;
+    padding: 0 9px;
+  }
+}

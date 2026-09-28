@@ -5,290 +5,74 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARTTECH // LittleFS File Manager</title>
-
-  <!-- Cyber Tech Google Fonts -->
+  <title>ARTTECH | File Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
-
-  <!-- Style Sheets -->
-  <link rel="stylesheet" href="mainstyle.css" />
-  <link rel="stylesheet" href="substyle.css" />
-
-  <style>
-    /* --------------------------------------------------------------------------
-       Custom Table & Element Styling matching VoltFlow Cyber Theme
-       -------------------------------------------------------------------------- */
-    .file-table-container {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    .cyber-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: var(--sub-font-mono);
-      font-size: 0.8rem;
-    }
-
-    .cyber-table th {
-      background: rgba(248, 250, 252, 0.9);
-      color: var(--sub-text-muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 10px 12px;
-      border-bottom: 2px solid var(--sub-border-color);
-      text-align: left;
-    }
-
-    .cyber-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--sub-border-color);
-      color: var(--sub-text-primary);
-      vertical-align: middle;
-    }
-
-    .cyber-table tbody tr {
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .cyber-table tbody tr:hover {
-      background: var(--sub-accent-cyan-glow);
-    }
-
-    /* File / Dir Badges */
-    .badge-type {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .badge-type.dir {
-      background: var(--sub-accent-cyan-glow);
-      color: var(--sub-accent-cyan);
-      border: 1px solid var(--sub-accent-cyan);
-    }
-
-    .badge-type.file {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--sub-accent-green);
-      border: 1px solid var(--sub-accent-green);
-    }
-
-    /* Cyber Delete Button */
-    .btn-delete {
-      height: 28px;
-      padding: 0 12px;
-      background: transparent;
-      border: 1px solid var(--sub-accent-red);
-      color: var(--sub-accent-red);
-      font-family: var(--sub-font-mono);
-      font-size: 0.7rem;
-      font-weight: 700;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-delete:hover {
-      background: var(--sub-accent-red);
-      color: #ffffff;
-      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-    }
-
-    .empty-msg {
-      text-align: center;
-      color: var(--sub-text-light);
-      padding: 16px !important;
-      font-style: italic;
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="filelist.css" />
 </head>
 
 <body>
-  <!-- Overlay Scanline Effect -->
-  <div class="cyber-scanline"></div>
-
-  <!-- Cyber Top Navbar -->
-  <header class="navbar">
-    <div class="navbar-brand">
-      <a href="index.html" class="navbar-logo-link">
-        <span class="logo-symbol">⚡</span>
-        <span class="navbar-text">ARTTECH <span class="sub-logo">// FILE SYSTEM</span></span>
-      </a>
-    </div>
-    <div class="navbar-actions">
-      <div class="sync-indicator">
-        <span class="pulse-dot"></span>
-        <span class="sync-label">STORAGE:</span>
-        <span class="sync-time">LITTLEFS</span>
+  <!-- 1. Dashboard shell and navigation -->
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark"><img src="pic/pic-monitor.png" alt="Inverter"></div>
+      <div>
+        <h1>ARTTECH</h1>
+        <p class="connection"><span class="status-dot"></span>File manager</p>
       </div>
     </div>
+    <nav class="top-navigation" aria-label="Primary navigation">
+      <a class="top-navigation-link" href="dashboard.html"><span>⚙</span> Dashboard</a>
+      <a class="top-navigation-link" href="setting.html"><span>⚒</span> Settings</a>
+      <a class="top-navigation-link" href="battery.html"><span>▣</span> Battery</a>
+      <a class="top-navigation-link" href="state.html"><span>⇄</span> State</a>
+      <a class="top-navigation-link" href="network.html"><span>◉</span> Network</a>
+      <a class="top-navigation-link" href="ota.html"><span>⇧</span> OTA Update</a>
+      <a class="top-navigation-link active" href="filelist.html"><span>&gt;_</span> Files</a>
+    </nav>
+    <div class="topbar-actions"></div>
   </header>
 
-    <!-- App Layout with Sidebar and Main Content -->
-  <div class="app-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="index.html" class="nav-item">
-          <span class="nav-icon">▤</span>
-          <span>HUB</span>
-        </a>
-        <a href="monitor.html" class="nav-item">
-          <span class="nav-icon">⚙</span>
-          <span>MONITOR</span>
-        </a>
-        <a href="setting.html" class="nav-item">
-          <span class="nav-icon">🛠</span>
-          <span>SETTINGS</span>
-        </a>
-        <a href="battery.html" class="nav-item">
-          <span class="nav-icon">🔋</span>
-          <span>BATTERY</span>
-        </a>
-        <a href="state.html" class="nav-item">
-          <span class="nav-icon">⇄</span>
-          <span>STATE</span>
-        </a>
-        <a href="network.html" class="nav-item">
-          <span class="nav-icon">🌐</span>
-          <span>NETWORK</span>
-        </a>
-        <a href="ota.html" class="nav-item active">
-          <span class="nav-icon">⇪</span>
-          <span>OTA UPDATE</span>
-        </a>
-        <a href="info.html" class="nav-item">
-          <span class="nav-icon">&gt;_</span>
-          <span>CONSOLE</span>
-        </a>
-      </nav>
-    </aside>
-
-  <!-- Central Dashboard Viewport -->
-  <main class="dashboard-viewport"
-    style="align-items: center; justify-content: flex-start; min-height: calc(100vh - 60px); padding: 16px 12px 24px 12px;">
-    <div class="main-container">
-
-      <!-- Block Header -->
-      <div class="blockhead">
-        <div class="blockname">
-          <p class="namehead">FILE MANAGER</p>
+  <div class="app-shell">
+    <main class="dashboard filelist-page">
+      <!-- 2. Page heading -->
+      <section class="page-intro">
+        <div>
+          <p class="overline">LITTLEFS STORAGE</p>
+          <h2>File manager</h2>
         </div>
-      </div>
+      </section>
 
-      <!-- Block Content -->
-      <div class="blockcontent">
+      <!-- 3. File list -->
+      <section class="panel filelist-panel" aria-labelledby="file-list-title">
+        <div class="panel-heading">
+          <div>
+            <p class="overline">FILESYSTEM</p>
+            <h2 id="file-list-title">Stored files</h2>
+          </div>
+        </div>
+
         <div class="file-table-container">
-          <table class="cyber-table" id="fileTable">
+          <table class="file-table" id="fileTable">
             <thead>
               <tr>
-                <th style="width: 20%;">TYPE</th>
-                <th style="width: 55%;">NAME</th>
-                <th style="width: 25%; text-align: center;">ACTIONS</th>
+                <th scope="col">Type</th>
+                <th scope="col">Name</th>
+                <th scope="col" class="actions-heading">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <!-- Dynamic rows populated via JS -->
+              <!-- Dynamic rows are populated by filelist.js. -->
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
+    </main>
+  </div>
 
-    </div>
-  </main>
-
-  <script>
-    function loadFileList() {
-      fetch("/list?dir=/")
-        .then(res => res.json())
-        .then(files => {
-          const tableBody = document.querySelector("#fileTable tbody");
-          tableBody.innerHTML = ""; // Clear old rows
-
-          if (files.length === 0) {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td colspan="3" class="empty-msg">No files found in directory.</td>`;
-            tableBody.appendChild(row);
-            return;
-          }
-
-          files.forEach(file => {
-            const row = document.createElement("tr");
-
-            // Type Cell
-            const typeCell = document.createElement("td");
-            const badge = document.createElement("span");
-            badge.className = `badge-type ${file.type}`;
-            badge.textContent = file.type;
-            typeCell.appendChild(badge);
-
-            // Name Cell
-            const nameCell = document.createElement("td");
-            nameCell.textContent = file.name;
-            nameCell.style.fontWeight = "600";
-
-            // Action Cell
-            const actionCell = document.createElement("td");
-            actionCell.style.textAlign = "center";
-
-            if (file.type === "file") {
-              const deleteBtn = document.createElement("button");
-              deleteBtn.className = "btn-delete";
-              deleteBtn.textContent = "DELETE";
-              deleteBtn.onclick = () => deleteFile("/" + file.name);
-              actionCell.appendChild(deleteBtn);
-            } else {
-              actionCell.textContent = "—";
-              actionCell.style.color = "var(--sub-text-light)";
-            }
-
-            row.appendChild(typeCell);
-            row.appendChild(nameCell);
-            row.appendChild(actionCell);
-
-            tableBody.appendChild(row);
-          });
-        })
-        .catch(error => {
-          console.error("Error loading file list:", error);
-          const tableBody = document.querySelector("#fileTable tbody");
-          tableBody.innerHTML = `<tr><td colspan="3" class="empty-msg" style="color: var(--sub-accent-red);">Failed to load file system data.</td></tr>`;
-        });
-    }
-
-    function deleteFile(path) {
-      if (!confirm("Delete " + path + "?")) return;
-
-      fetch("/delete?file=" + encodeURIComponent(path))
-        .then(res => {
-          if (res.ok) {
-            loadFileList(); // Reload the list after deletion
-          } else {
-            return res.text().then(text => {
-              throw new Error(text || "Delete failed");
-            });
-          }
-        })
-        .catch(error => {
-          console.error("Delete error:", error);
-          alert("Delete failed: " + error.message);
-        });
-    }
-
-    // Load files on page load
-    loadFileList();
-  </script>
+  <script src="filelist.js"></script>
 </body>
 
 </html>

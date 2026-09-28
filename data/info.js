@@ -1,10 +1,25 @@
-var gateway = `ws://${window.location.hostname}/ws`;
-var websocket;
+/* --------------------------------------------------------------------------
+     1. WebSocket connection and device status
+     -------------------------------------------------------------------------- */
+const gateway = `ws://${window.location.hostname}/ws`;
+let websocket;
+let reconnectTimer;
 
-window.addEventListener('load', onload);
+function updateConnectionStatus(state) {
+    const status = document.getElementById("connectionState");
+    const label = document.getElementById("connectionLabel");
+    if (!status || !label) return;
 
-function onload(event) {
-    initWebSocket();
+    status.classList.remove("is-connected", "is-disconnected");
+    if (state === "connected") {
+        status.classList.add("is-connected");
+        label.textContent = "Connected";
+    } else if (state === "disconnected") {
+        status.classList.add("is-disconnected");
+        label.textContent = "Reconnecting";
+    } else {
+        label.textContent = "Connecting";
+    }
 }
 
 function getReadings() {
@@ -14,128 +29,119 @@ function getReadings() {
 }
 
 function initWebSocket() {
+    if (websocket && (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+
+    updateConnectionStatus("connecting");
     websocket = new WebSocket(gateway);
 
     websocket.onopen = () => {
-        console.log("WebSocket Opened");
+        updateConnectionStatus("connected");
         getReadings();
     };
 
     websocket.onclose = () => {
-        console.log("WebSocket Closed");
-        setTimeout(initWebSocket, 2000);
+        updateConnectionStatus("disconnected");
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(initWebSocket, 2000);
     };
+
+    websocket.onerror = () => websocket.close();
 
     websocket.onmessage = (event) => {
-        const ts = new Date().toLocaleTimeString();
         try {
-            // event.data เป็น Base64 string
-            const rawText = atob(event.data);
-
-            // ลบอักขระควบคุมที่ไม่ใช่ printable ASCII (0x20-0x7E)
-            const jsonText = rawText.replace(/[\x00-\x1F\x7F]/g, "");
-            const obj = JSON.parse(jsonText);
-
-            console.log("Decoded JSON:", obj);
-
-            // 🔹 แก้ไขจุดผิด: เปลี่ยนจาก data เป็น obj และตรวจเช็ก Element บนหน้าเว็บ
-            const ipElem = document.getElementById("device_ip");
-            if (ipElem && obj["DIVICE_IP"]) {
-                ipElem.textContent = obj["DIVICE_IP"];
-            }
-
-            // 🔹 เผื่อหน้า network.html มีการใช้ id เป็น esp32-ip
-            const espIpElem = document.getElementById("esp32-ip");
-            if (espIpElem && obj["DIVICE_IP"]) {
-                espIpElem.textContent = obj["DIVICE_IP"];
-            }
-
-            if (obj["Serial"]) {
-                console.log(`Serial : ${obj["Serial"]}`);
-                appendToTerminal(`Serial: ${obj["Serial"]}`);
-            }
-            if (obj["Inverter"]) {
-                console.log(`Inverter: ${obj["Inverter"]}`);
-                appendToTerminal(`Inverter: ${obj["Inverter"]}`);
-            }
-            if (obj["controll"]) {
-                console.log(`controll: ${obj["controll"]}`);
-                appendToTerminal(`controll: ${obj["controll"]}`);
-            }
-
-        } catch (err) {
-            console.error("Decode error:", err, event.data);
+            const decodedText = atob(event.data).replace(/[\x00-\x1F\x7F]/g, "");
+            const readings = JSON.parse(decodedText);
+            updateDeviceIp(readings["DIVICE_IP"]);
+            appendReading("Serial", readings.Serial);
+            appendReading("Inverter", readings.Inverter);
+            appendReading("controll", readings.controll);
+        } catch (error) {
+            console.error("WebSocket message decode error:", error, event.data);
         }
     };
 }
 
-// 🔹 ดักเช็กปุ่ม Send ก่อนผูก Event (มีเฉพาะใน info.html)
-const sendBtn = document.getElementById("sendBtn");
-if (sendBtn) {
-    sendBtn.addEventListener("click", () => {
-        const ts = new Date().toLocaleTimeString();
-        const msgInput = document.getElementById("messageInput");
-        if (msgInput) {
-            const msg = msgInput.value.trim();
-            if (msg) {
-                fetchToserver(msg);
-                appendToTerminal(`Sent : ${msg}`);
-                msgInput.value = "";
-            }
-        }
+function updateDeviceIp(ipAddress) {
+    if (!ipAddress) return;
+
+    ["device_ip", "esp32-ip"].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = ipAddress;
     });
 }
 
-// 🔹 ดักเช็กปุ่ม Clear ก่อนผูก Event (มีเฉพาะใน info.html)
-const clearBtn = document.getElementById("clearBtn");
-if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-        const termElem = document.getElementById("terminal");
-        if (termElem) termElem.innerHTML = "";
-    });
-}
-
-// 🔹 ดักเช็กกล่องข้อความก่อนผูก Event กด Enter (มีเฉพาะ in info.html)
-const messageInput = document.getElementById("messageInput");
-if (messageInput) {
-    messageInput.addEventListener("keydown", (e) => {
-        const ts = new Date().toLocaleTimeString();
-        const msg = messageInput.value.trim();
-        if (e.key === 'Enter') {
-            if (msg) {
-                fetchToserver(msg);
-                appendToTerminal(`Sent : ${msg}`);
-                messageInput.value = "";
-            }
-        }
-    });
-}
-
-// 🔹 ปรับปรุงฟังก์ชัน Terminal ให้ปลอดภัย ตรวจสอบโครงสร้างก่อนต่อ Element
-function appendToTerminal(message) {
-    const termElem = document.getElementById("terminal");
-    if (termElem) {
-        const div = document.createElement("div");
-        div.textContent = message;
-        termElem.appendChild(div);
-        termElem.scrollTop = termElem.scrollHeight;
-    } else {
-        // หากไม่มีหน้าจอ Terminal บนหน้า HTML นั้น ให้บันทึกความเคลื่อนไหวลงใน Console แทน
+/* --------------------------------------------------------------------------
+     2. Terminal output
+     -------------------------------------------------------------------------- */
+function appendToTerminal(message, type = "received") {
+    const terminal = document.getElementById("terminal");
+    if (!terminal) {
         console.log("Terminal Log:", message);
+        return;
     }
+
+    const emptyState = document.getElementById("terminalEmpty");
+    if (emptyState) emptyState.remove();
+
+    const line = document.createElement("div");
+    line.className = `terminal-message ${type}`;
+    line.textContent = message;
+    terminal.appendChild(line);
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function appendReading(source, message) {
+    if (message) appendToTerminal(`${source}: ${message}`, "received");
+}
+
+function clearTerminal() {
+    const terminal = document.getElementById("terminal");
+    if (!terminal) return;
+
+    terminal.replaceChildren();
+    const emptyState = document.createElement("p");
+    emptyState.className = "terminal-empty";
+    emptyState.id = "terminalEmpty";
+    emptyState.textContent = "Waiting for device messages...";
+    terminal.appendChild(emptyState);
+}
+
+/* --------------------------------------------------------------------------
+     3. Inverter command input
+     -------------------------------------------------------------------------- */
+function sendCommand(event) {
+    event.preventDefault();
+    const input = document.getElementById("messageInput");
+    const message = input ? input.value.trim() : "";
+    if (!message) return;
+
+    fetchToserver(message);
+    appendToTerminal(`Sent: ${message}`, "sent");
+    input.value = "";
+    input.focus();
 }
 
 function fetchToserver(message) {
-    console.log(`${message} to Server`);
-    const formdata = new FormData();
-    formdata.append("plain", message);
-    const requestOptions = {
-        method: "POST",
-        body: formdata,
-        redirect: "follow"
-    };
-    fetch("/terminalSet", requestOptions)
+    const formData = new FormData();
+    formData.append("plain", message);
+    fetch("/terminalSet", { method: "POST", body: formData, redirect: "follow" })
         .then((response) => response.text())
-        .then((result) => console.log("Respond:", result))
-        .catch((error) => console.error("Error:", error));
+        .then((result) => console.log("Server response:", result))
+        .catch((error) => console.error("Server command error:", error));
 }
+
+/* --------------------------------------------------------------------------
+     4. Page initialization
+     -------------------------------------------------------------------------- */
+function initializeInfoPage() {
+    const commandForm = document.getElementById("commandForm");
+    const clearButton = document.getElementById("clearBtn");
+
+    if (commandForm) commandForm.addEventListener("submit", sendCommand);
+    if (clearButton) clearButton.addEventListener("click", clearTerminal);
+    initWebSocket();
+}
+
+window.addEventListener("load", initializeInfoPage);

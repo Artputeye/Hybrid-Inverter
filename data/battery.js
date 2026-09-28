@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --------------------------------------------------------------------------
+  // 1. Battery ranges and units
+  // --------------------------------------------------------------------------
   const ranges = {
     BulkChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
     FloatingChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
@@ -19,6 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("battypeToggle");
   const battLabel = document.getElementById("battType");
 
+  // --------------------------------------------------------------------------
+  // 2. Battery mode toggles
+  // --------------------------------------------------------------------------
   function setRangeAndLabel(inputId, labelId, voltType) {
     const input = document.getElementById(inputId);
     const label = document.getElementById(labelId);
@@ -41,7 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .forEach(id => setRangeAndLabel(id, id.replace("BatteryEqualization", "BatteryEqualization_"), voltType));
   }
 
-  // Bind Checkbox events
+  // --------------------------------------------------------------------------
+  // 3. Battery selection settings
+  // --------------------------------------------------------------------------
   document.querySelectorAll('.toggle-row input[type="checkbox"]').forEach(cb => {
     const settingName = cb.getAttribute("data-setting") || cb.id.replace(/\s+/g, "");
     cb.addEventListener("change", function() {
@@ -52,7 +60,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Global sendSetting function
+  // --------------------------------------------------------------------------
+  // 4. Battery voltage settings
+  // --------------------------------------------------------------------------
   window.sendSetting = function(button) {
     const container = button.closest(".form-row, .card-main");
     if (!container) return;
@@ -92,7 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
     sendToServer(settingName, finalVal);
   };
 
-  // Restore Battery Data
+  // --------------------------------------------------------------------------
+  // 5. Restore saved settings
+  // --------------------------------------------------------------------------
   fetch('/battery.json')
     .then(res => res.json())
     .then(data => {
@@ -108,6 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(err => console.error("❌ [RESTORE ERROR] Fetching battery settings:", err));
 
+  // --------------------------------------------------------------------------
+  // 6. Server communication and state sync
+  // --------------------------------------------------------------------------
   function sendToServer(settingName, value) {
     const payload = { setting: settingName, value: Number(value) };
 
