@@ -3,16 +3,26 @@ const history = { labels: [], solar: [], load: [], grid: [] };
 const maxSamples = 24;
 
 /* --------------------------------------------------------------------------
-  1. Shared telemetry helpers and connection state
+  Shared telemetry helpers and connection state
   -------------------------------------------------------------------------- */
 function numberValue(value) {
   const number = Number.parseFloat(value);
   return Number.isFinite(number) ? number : null;
 }
 
-function formatPower(value) {
+function formatPower(value, baseUnit = "W", scaledUnit = "kW") {
   const number = numberValue(value);
-  return number === null ? "--" : (number / 1000).toFixed(2);
+  if (number === null) return { value: "--", unit: baseUnit };
+  if (Math.abs(number) > 1500) {
+    return { value: (number / 1000).toFixed(2), unit: scaledUnit };
+  }
+  return { value: String(number), unit: baseUnit };
+}
+
+function setPower(valueId, unitId, value, baseUnit = "W", scaledUnit = "kW") {
+  const formatted = formatPower(value, baseUnit, scaledUnit);
+  setText(valueId, formatted.value);
+  setText(unitId, formatted.unit);
 }
 
 function setText(id, value) {
@@ -45,18 +55,26 @@ function hasFault(value) {
 }
 
 /* --------------------------------------------------------------------------
-   2. Live energy flow and summary values
-   -------------------------------------------------------------------------- */
-function updateFlowAndSummary(values) {
-  const { pvPower, gridPower, activePower, batteryVoltage, temperature, energyDaily } = values;
+  1. Live energy flow
+  -------------------------------------------------------------------------- */
+function updateLiveEnergyFlow(values) {
+  const { pvRaw, activeRaw, gridRaw, batteryVoltage } = values;
 
-  setText("solarFlow", `${pvPower} kW`);
-  setText("inverterFlow", `${activePower} kW`);
-  setText("loadFlow", `${activePower} kW`);
-  setText("solarPower", pvPower);
-  setText("homeLoad", activePower);
-  setText("gridFlow", gridPower === "--" ? "Power -- kW" : `Power ${gridPower} kW`);
-  setText("batteryFlow", batteryVoltage === null ? "Voltage -- V" : `Voltage ${batteryVoltage.toFixed(1)} V`);
+  setPower("solarFlowValue", "solarFlowUnit", pvRaw);
+  setPower("loadFlowValue", "loadFlowUnit", activeRaw);
+  setPower("gridFlowValue", "gridFlowUnit", gridRaw);
+  setText("batteryFlowValue", batteryVoltage === null ? "--" : batteryVoltage.toFixed(1));
+  setText("batteryFlowUnit", "V");
+}
+
+/* --------------------------------------------------------------------------
+  2. Live energy summary
+  -------------------------------------------------------------------------- */
+function updateEnergySummary(values) {
+  const { pvRaw, activeRaw, batteryVoltage, temperature, energyDaily } = values;
+
+  setPower("solarPower", "solarPowerUnit", pvRaw);
+  setPower("homeLoad", "homeLoadUnit", activeRaw);
   setText("batteryVoltage", batteryVoltage === null ? "--" : batteryVoltage.toFixed(1));
   setText("batteryVoltageRing", batteryVoltage === null ? "--" : `${batteryVoltage.toFixed(1)}V`);
   setText("batteryTemperature", temperature === null ? "-- °C" : `${temperature.toFixed(0)} °C`);
@@ -65,7 +83,7 @@ function updateFlowAndSummary(values) {
 }
 
 /* --------------------------------------------------------------------------
-   3. Load gauge and output electrical parameters
+  3. Load gauge and output electrical parameters
    -------------------------------------------------------------------------- */
 function formatFixed(value, decimals) {
   const number = numberValue(value);
@@ -82,16 +100,16 @@ function updateRing(circleId, percent, circumference) {
 }
 
 function updateLoadAndOutput(data, values) {
-  const { activeRaw, activePower } = values;
+  const { activeRaw } = values;
   const loadPercent = numberValue(data["Load Percent"]);
   const apparentPower = numberValue(data["Output Apparent Power"]);
 
   setText("loadPercent", loadPercent === null ? "--%" : `${loadPercent.toFixed(0)}%`);
   setText("loadRingValue", loadPercent === null ? "--%" : `${loadPercent.toFixed(0)}%`);
   setText("loadGaugePercent", loadPercent === null ? "--" : loadPercent.toFixed(0));
-  setText("activeLoadPower", activePower === "--" ? "-- kW" : `${activePower} kW`);
-  setText("activePowerMetric", activeRaw === null ? "--" : activeRaw.toFixed(0));
-  setText("apparentPowerMetric", apparentPower === null ? "--" : apparentPower.toFixed(0));
+  setPower("activeLoadPower", "activeLoadPowerUnit", activeRaw);
+  setPower("activePowerMetric", "activePowerMetricUnit", activeRaw);
+  setPower("apparentPowerMetric", "apparentPowerMetricUnit", apparentPower, "VA", "kVA");
   setText("outputVoltageMetric", formatFixed(data["Output Voltage"], 1));
   setText("outputCurrentMetric", formatFixed(data["Output Current"], 1));
   setText("outputFrequencyMetric", formatFixed(data["Output Frequency"], 1));
@@ -101,7 +119,7 @@ function updateLoadAndOutput(data, values) {
 }
 
 /* --------------------------------------------------------------------------
-   4. System status and energy insights
+  4. System status and energy insights
    -------------------------------------------------------------------------- */
 function updateSystemStatus(data, values) {
   const fault = hasFault(data["Inverter Faults"]);
@@ -138,15 +156,13 @@ function applyTelemetry(data) {
   const pvRaw = numberValue(data["PV Power"]);
   const gridRaw = numberValue(data["Grid Power"]);
   const activeRaw = numberValue(data["Output Active Power"]);
-  const pvPower = formatPower(pvRaw);
-  const gridPower = formatPower(gridRaw);
-  const activePower = formatPower(activeRaw);
   const batteryVoltage = numberValue(data["Battery Voltage"]);
   const temperature = numberValue(data.Temperature);
   const energyDaily = numberValue(data["Energy Daily"]);
 
-  const values = { pvRaw, gridRaw, activeRaw, pvPower, gridPower, activePower, batteryVoltage, temperature, energyDaily };
-  updateFlowAndSummary(values);
+  const values = { pvRaw, gridRaw, activeRaw, batteryVoltage, temperature, energyDaily };
+  updateLiveEnergyFlow(values);
+  updateEnergySummary(values);
   updateLoadAndOutput(data, values);
   updateSystemStatus(data, values);
   updateEnergyInsights(data, energyDaily);
@@ -155,7 +171,7 @@ function applyTelemetry(data) {
 }
 
 /* --------------------------------------------------------------------------
-   5. WebSocket connection and payload decoding
+  5. WebSocket connection and payload decoding
    -------------------------------------------------------------------------- */
 function decodeTelemetry(message) {
   const binary = atob(message);
@@ -184,7 +200,7 @@ function connectTelemetry() {
 }
 
 /* --------------------------------------------------------------------------
-   6. Live telemetry charts
+  6. Live telemetry charts
    -------------------------------------------------------------------------- */
 function appendHistory(pvPower, activePower, gridPower) {
   if ([pvPower, activePower, gridPower].some((value) => value === null)) return;
@@ -251,8 +267,30 @@ function renderCharts() {
   drawChart("loadChart", [{ data: history.load, color: chartColors.blue }, { data: history.grid, color: chartColors.pink }]);
 }
 
+/**
+   * ฟังก์ชันจัดการทิศทางเส้น Grid ตามค่าที่ส่งเข้ามา
+   * @param {number} powerVal - ค่ากำลังไฟฟ้า (W) ถ้าติดลบจะวิ่งย้อนกลับไป Grid
+   */
+
+function setGridFlowValue(powerVal) {
+  const gridValueElem = document.getElementById('gridFlowValue');
+  const gridPathElem = document.querySelector('.grid-path');
+
+  if (!gridValueElem || !gridPathElem) return;
+
+  // แสดงผลตัวเลข (จะเอาเครื่องหมายลบออก หรือคงไว้ก็ได้)
+  gridValueElem.textContent = powerVal;
+
+  // ถ้าค่าติดลบ ให้เพิ่ม Class reverse-path เพื่อให้เส้นวิ่งย้อนกลับ (Home -> Grid)
+  if (powerVal < 0) {
+    gridPathElem.classList.add('reverse-path');
+  } else {
+    gridPathElem.classList.remove('reverse-path');
+  }
+}
+
 /* --------------------------------------------------------------------------
-   7. Dashboard initialization
+  7. Dashboard initialization
    -------------------------------------------------------------------------- */
 window.addEventListener("resize", renderCharts);
 renderCurrentDate();

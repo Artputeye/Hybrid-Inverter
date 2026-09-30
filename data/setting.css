@@ -13,6 +13,49 @@
   font-family: "DM Sans", sans-serif;
 }
 
+.settings-view-switcher {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.settings-view-option {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  font: 600 13px "DM Sans", sans-serif;
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.settings-view-option.active {
+  background: var(--mint);
+  color: #fff;
+  box-shadow: 0 3px 9px rgba(35, 185, 154, .16);
+}
+
+.settings-view-option:focus-visible {
+  outline: 3px solid rgba(77, 153, 223, .28);
+  outline-offset: 2px;
+}
+
+.expense-empty-state {
+  margin: 0;
+  padding: 28px 12px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
 .inverter-settings-page h1,
 .inverter-settings-page h2,
 .inverter-settings-page h3,
@@ -72,12 +115,21 @@
 }
 
 .setting-label,
-.schedule-field span {
+.schedule-field span,
+.input-sublabel span {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: .2px;
+}
+
+.input-sublabel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
 }
 
 .setting-form,
@@ -289,7 +341,8 @@
 
   .setting-row,
   .schedule-card,
-  .schedule-fields {
+  .schedule-fields,
+  .input-sublabel {
     align-items: stretch;
     flex-direction: column;
   }

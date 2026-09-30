@@ -45,8 +45,19 @@
         </div>
       </section>
 
+      <nav class="settings-view-switcher" aria-label="Settings pages" role="tablist">
+        <button class="settings-view-option active" type="button" id="inverterTab" role="tab"
+          aria-selected="true" aria-controls="inverterSettingsView" data-settings-view="inverter">
+          Inverter parameters
+        </button>
+        <button class="settings-view-option" type="button" id="expenseTab" role="tab"
+          aria-selected="false" aria-controls="expenseSettingsView" data-settings-view="expense">
+          Expense setting
+        </button>
+      </nav>
+
       <!-- 3. Inverter settings panel -->
-      <section class="settings-panel" aria-labelledby="inverter-settings-title">
+      <section class="settings-panel" id="inverterSettingsView" role="tabpanel" aria-labelledby="inverterTab">
         <header class="settings-header">
           <div class="settings-title">
             <p class="overline">CONFIGURATION</p>
@@ -246,6 +257,94 @@
           <!-- 3.4 Restore action -->
           <div class="settings-actions">
             <button class="restore-button" type="button" onclick="restoreDefaults()">Restore Defaults</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-panel expense-settings-panel" id="expenseSettingsView" role="tabpanel"
+        aria-labelledby="expenseTab" hidden>
+        <!-- 1. Header -->
+        <header class="settings-header">
+          <div class="settings-title">
+            <p class="overline">CONFIGURATION</p>
+            <h2>Expense setting</h2>
+          </div>
+        </header>
+
+        <!-- 2. Content -->
+        <div class="settings-content">
+          <!-- 2.1 Electricity Tier Rate Inputs (การไฟฟ้าส่วนภูมิภาค / การไฟฟ้านครหลวง อัตราก้าวหน้า) -->
+          <article class="setting-card">
+            <h3 class="setting-label">Electricity Rate Tier 1 (1 - <span id="tier1RangeText">200</span> Units)</h3>
+            <div class="setting-row">
+              <label class="input-sublabel">
+                <span>Unit Limit (kWh)</span>
+                <input class="schedule-input" type="number" id="UnitCost1" min="0" step="1" placeholder="200" oninput="updateTierLabelsUI()" />
+              </label>
+              <label class="input-sublabel">
+                <span>Price (THB/kWh)</span>
+                <input class="schedule-input" type="number" id="PriceCost1" min="0" step="0.0001" placeholder="3.0000" />
+              </label>
+            </div>
+          </article>
+
+          <article class="setting-card">
+            <h3 class="setting-label">Electricity Rate Tier 2 (<span id="tier2StartText">201</span> - <span id="tier2EndText">400</span> Units)</h3>
+            <div class="setting-row">
+              <label class="input-sublabel">
+                <span>Unit Limit (kWh)</span>
+                <input class="schedule-input" type="number" id="UnitCost2" min="0" step="1" placeholder="400" oninput="updateTierLabelsUI()" />
+              </label>
+              <label class="input-sublabel">
+                <span>Price (THB/kWh)</span>
+                <input class="schedule-input" type="number" id="PriceCost2" min="0" step="0.0001" placeholder="4.1584" />
+              </label>
+            </div>
+          </article>
+
+          <article class="setting-card">
+            <h3 class="setting-label">Electricity Rate Tier 3 (Above <span id="tier3StartText">400</span> Units)</h3>
+            <div class="setting-row">
+              <label class="input-sublabel">
+                <span>Price (THB/kWh)</span>
+                <input class="schedule-input" type="number" id="PriceCost3" min="0" step="0.0001" placeholder="4.3583" />
+              </label>
+            </div>
+          </article>
+
+          <!-- 2.2 Solar Generation Capacity & Adjustments -->
+          <article class="setting-card">
+            <h3 class="setting-label">Solar & Variable Charges</h3>
+            <div class="setting-row">
+              <label class="input-sublabel">
+                <span>Solar Unit (Wp / kWh)</span>
+                <input class="schedule-input" type="number" id="UnitSolar" min="0" step="1" placeholder="450" />
+              </label>
+              <label class="input-sublabel">
+                <span>FT Charge (THB/kWh)</span>
+                <input class="schedule-input" type="number" id="ft" step="0.0001" placeholder="0.3972" />
+              </label>
+            </div>
+          </article>
+
+          <!-- 2.3 Additional Electricity Bill Charges (ค่าบริการ + ภาษีมูลค่าเพิ่ม) -->
+          <article class="setting-card">
+            <h3 class="setting-label">Fixed & Tax Rates</h3>
+            <div class="setting-row">
+              <label class="input-sublabel">
+                <span>Service Fee (THB/Month)</span>
+                <input class="schedule-input" type="number" id="ServiceFee" min="0" step="0.01" placeholder="38.22" />
+              </label>
+              <label class="input-sublabel">
+                <span>VAT Rate (%)</span>
+                <input class="schedule-input" type="number" id="VatRate" min="0" max="100" step="0.1" placeholder="7" />
+              </label>
+            </div>
+          </article>
+
+          <!-- 2.4 Expense Actions -->
+          <div class="settings-actions">
+            <button class="setting-button" type="button" onclick="saveExpenseSettings()">Save Expense</button>
           </div>
         </div>
       </section>

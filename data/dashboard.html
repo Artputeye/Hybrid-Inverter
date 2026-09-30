@@ -52,8 +52,16 @@
         <div class="date-chip"><span aria-hidden="true">◷</span><span id="currentDate">--</span></div>
       </section>
 
-      <!-- 1. Live energy flow -->
+
+
+      <!-- ==========================================================
+     SECTION: LIVE ENERGY FLOW PANEL
+     ========================================================== -->
       <section class="panel flow-panel" aria-labelledby="flow-title">
+
+        <!-- ==========================================================
+       SECTION HEADER: หัวข้อและสถานะ Live Flow
+       ========================================================== -->
         <div class="panel-heading">
           <div>
             <p class="overline">LIVE ENERGY FLOW</p>
@@ -62,93 +70,76 @@
           <span class="live-label"><span class="live-dot"></span>LIVE FLOW</span>
         </div>
 
+
+        <!-- ==========================================================
+       ENERGY FLOW CONTAINER: พื้นที่แสดงผลแผนผังพลังงาน
+       ========================================================== -->
         <div class="flow-layout">
-          <!-- Main Flow Sequence -->
           <div class="flow-main-wrapper">
-            <div class="flow-main" aria-label="Solar power flows through the inverter to home load">
+            <div class="flow-main" aria-label="Solar, Grid, and Battery feed the Home">
 
-              <!-- Solar Node -->
+              <!-- ------------------------------------------------------
+             1. SVG PATHS: เส้นทางการไหลของพลังงาน (ตรงตามรูปภาพ)
+             ------------------------------------------------------ -->
+              <svg class="flow-wiring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <!-- Grid -> Home (วิ่งตรงจาก Grid ไปยัง Home) -->
+                <path class="flow-path grid-path" d="M 12.5,75 L 62.5,75"></path>
+
+                <!-- Solar -> Home (วิ่งลงมาจาก Solar แล้วหักเลี้ยวขวาเข้า Home) -->
+                <path class="flow-path solar-path" d="M 37.5,25 L 37.5,70 L 62.5,70"></path>
+
+                <!-- Battery -> Home (วิ่งตรงจาก Battery เข้าหา Home) -->
+                <path class="flow-path battery-path" d="M 87.5,75 L 62.5,75"></path>
+              </svg>
+
+              <!-- ------------------------------------------------------
+             2. SOLAR NODE: อยู่ตรงกลางระหว่าง Grid กับ Home (ด้านบน)
+             ------------------------------------------------------ -->
               <article class="flow-node solar-node">
-                <div class="node-icon-wrapper">
-                  <span class="node-icon" aria-hidden="true">☼</span>
-                </div>
-                <div class="node-content">
-                  <p class="node-title">Solar panels</p>
-                  <strong id="solarFlow" class="node-value">-- <small>kW</small></strong>
-                  <span class="node-caption">PV generation</span>
-                </div>
+                <p class="node-title">Solar</p>
+                <div class="node-icon-wrapper"><span class="node-icon" aria-hidden="true">☼</span></div>
+                <strong class="node-value">
+                  <span id="solarFlowValue">--</span> <small id="solarFlowUnit">W</small>
+                </strong>
               </article>
 
-              <!-- Dynamic Connector 1 -->
-              <div class="flow-connector solar-connector" aria-hidden="true">
-                <div class="connector-line">
-                  <div class="pulse-dot"></div>
-                </div>
-              </div>
-
-              <!-- Inverter Node (Featured Center) -->
-              <article class="flow-node inverter-node featured-node">
-                <div class="node-icon-wrapper">
-                  <span class="node-icon" aria-hidden="true">ϟ</span>
-                </div>
-                <div class="node-content">
-                  <p class="node-title">Hybrid inverter</p>
-                  <strong id="inverterFlow" class="node-value">-- <small>kW</small></strong>
-                  <span class="node-caption">AC output</span>
-                </div>
+              <!-- ------------------------------------------------------
+             3. GRID NODE: อยู่ซ้ายสุด
+             ------------------------------------------------------ -->
+              <article class="flow-node grid-node">
+                <p class="node-title">Grid</p>
+                <div class="node-icon-wrapper"><span class="node-icon" aria-hidden="true">⌁</span></div>
+                <strong class="node-value">
+                  <span id="gridFlowValue">--</span> <small id="gridFlowUnit">W</small>
+                </strong>
               </article>
 
-              <!-- Dynamic Connector 2 -->
-              <div class="flow-connector load-connector" aria-hidden="true">
-                <div class="connector-line">
-                  <div class="pulse-dot"></div>
-                </div>
-              </div>
+              <!-- ------------------------------------------------------
+             4. HOME NODE: จุดรับพลังงานหลัก (ถัดมาจาก Solar เยื้องขวา)
+             ------------------------------------------------------ -->
+              <article class="flow-node home-node">
+                <p class="node-title">Home</p>
+                <div class="node-icon-wrapper"><span class="node-icon" aria-hidden="true">⌂</span></div>
+                <strong class="node-value">
+                  <span id="loadFlowValue">--</span> <small id="loadFlowUnit">W</small>
+                </strong>
+              </article>
 
-              <!-- Home Load Node -->
-              <article class="flow-node load-node">
-                <div class="node-icon-wrapper">
-                  <span class="node-icon" aria-hidden="true">⌂</span>
-                </div>
-                <div class="node-content">
-                  <p class="node-title">Home load</p>
-                  <strong id="loadFlow" class="node-value">-- <small>kW</small></strong>
-                  <span class="node-caption">Current demand</span>
-                </div>
+              <!-- ------------------------------------------------------
+             5. BATTERY NODE: อยู่ขวาสุด (หน่วยเป็น W)
+             ------------------------------------------------------ -->
+              <article class="flow-node battery-node">
+                <p class="node-title">Battery</p>
+                <div class="node-icon-wrapper"><span class="node-icon" aria-hidden="true">▣</span></div>
+                <strong class="node-value">
+                  <span id="batteryFlowValue">--</span> <small id="batteryFlowUnit">W</small>
+                </strong>
               </article>
 
             </div>
           </div>
-
-          <!-- Side Supporting Flows -->
-          <div class="side-flows" aria-label="Supporting energy sources">
-            <article class="mini-flow battery-flow">
-              <div class="mini-icon-box">
-                <span class="mini-icon" aria-hidden="true">▣</span>
-              </div>
-              <div class="mini-info">
-                <b>Battery Storage</b>
-                <small id="batteryFlow">Voltage -- V</small>
-              </div>
-              <div class="mini-status">
-                <i aria-hidden="true" class="direction-icon">↕</i>
-              </div>
-            </article>
-
-            <article class="mini-flow grid-flow">
-              <div class="mini-icon-box">
-                <span class="mini-icon" aria-hidden="true">⌁</span>
-              </div>
-              <div class="mini-info">
-                <b>Utility Grid</b>
-                <small id="gridFlow">Power -- kW</small>
-              </div>
-              <div class="mini-status">
-                <i aria-hidden="true" class="direction-icon">↔</i>
-              </div>
-            </article>
-          </div>
         </div>
+
       </section>
 
       <!-- 2. Live energy summary -->
@@ -157,7 +148,7 @@
           <div class="metric-top"><span class="metric-icon">☼</span>
             <p class="overline">SOLAR PRODUCTION</p><span class="trend neutral">Live</span>
           </div>
-          <div class="metric-value"><span id="solarPower">--</span> <small>kW</small></div>
+          <div class="metric-value"><span id="solarPower">--</span> <small id="solarPowerUnit">W</small></div>
           <p class="metric-note">Today <strong id="energyDaily">-- kWh</strong></p>
         </article>
 
@@ -195,7 +186,7 @@
               <span id="loadRingValue">--<small>%</small></span>
             </div>
             <div>
-              <div class="metric-value"><span id="homeLoad">--</span> <small>kW</small></div>
+              <div class="metric-value"><span id="homeLoad">--</span> <small id="homeLoadUnit">W</small></div>
               <p class="metric-note">Load <strong id="loadPercent">--%</strong></p>
             </div>
           </div>
@@ -231,7 +222,7 @@
 
               <div class="gauge-data">
                 <p class="overline">LOAD_PERCENT</p>
-                <div class="value"><span id="loadGaugePercent">--</span><span>%</span></div>
+              <div class="value"><span id="loadGaugePercent">--</span><span>%</span></div>
               </div>
             </div>
           </div>
@@ -241,7 +232,7 @@
               <span class="lbl">MAX_CAP</span>
               <span class="val">--</span>
               <span class="lbl">ACTIVE</span>
-              <span class="val" id="activeLoadPower">-- kW</span>
+              <span class="val"><span id="activeLoadPower">--</span> <span id="activeLoadPowerUnit">W</span></span>
             </div>
             <div class="load-stats-row">
               <span class="lbl">PEAK_DAY</span>
@@ -270,7 +261,8 @@
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
-                <div class="value"><span id="activePowerMetric">--</span> <small>W</small></div>
+                <div class="value"><span id="activePowerMetric">--</span> <small id="activePowerMetricUnit">W</small>
+                </div>
                 <div class="perf-sub-label">Active Load Output</div>
               </div>
             </div>
@@ -282,7 +274,8 @@
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
-                <div class="value"><span id="apparentPowerMetric">--</span> <small>VA</small></div>
+                <div class="value"><span id="apparentPowerMetric">--</span> <small
+                    id="apparentPowerMetricUnit">VA</small></div>
                 <div class="perf-sub-label">Total Capacity</div>
               </div>
             </div>
@@ -424,7 +417,7 @@
             <div class="insight-metric">
               <p class="overline">DAILY YIELD</p>
               <div class="metric-value highlight">
-                <span id="dailyYield">--</span> <small>kWh</small>
+              <span id="dailyYield">--</span> <small>kWh</small>
               </div>
             </div>
             <div class="insight-row">
@@ -474,7 +467,8 @@
             <div class="chart-legend"><span><i class="legend-blue"></i>Load</span><span><i class="legend-pink"></i>Grid
                 power</span></div>
           </div>
-          <div class="chart-wrap"><canvas id="loadChart" aria-label="Home load and grid power line chart"></canvas></div>
+          <div class="chart-wrap"><canvas id="loadChart" aria-label="Home load and grid power line chart"></canvas>
+          </div>
         </article>
       </section>
 

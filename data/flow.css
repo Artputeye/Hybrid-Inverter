@@ -1,130 +1,191 @@
 /* ==========================================================
-   flow.css - Modern Clean Energy Flow Dashboard Styling
+   1. MAIN CONTAINER & PANEL STYLING
    ========================================================== */
-
-/* Main Panel Wrapper */
 .flow-panel {
-  padding: 28px 32px;
-  border-radius: 20px;
+  padding: 32px;
+  border-radius: 24px;
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 20px 40px rgba(23, 59, 64, 0.05),
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05),
               0 1px 3px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: hidden;
 }
 
-/* Overall Layout Structure */
 .flow-layout {
-  display: grid;
-  grid-template-columns: 1fr 290px;
-  gap: 32px;
-  align-items: center;
-  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
 }
 
 .flow-main-wrapper {
   width: 100%;
+  max-width: 680px;
 }
 
+/* 
+   Layout 4 Columns x 2 Rows Grid System:
+   Row 1: [ . ] [ Solar ] [ . ]    [ . ]
+   Row 2: [ Grid ] [ . ]  [ Home ] [ Battery ]
+*/
 .flow-main {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 120px);
+  grid-template-areas:
+    ".    solar .    ."
+    "grid .     home battery";
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-items: center;
   width: 100%;
 }
 
+
 /* ==========================================================
-   NODE CARDS (Solar, Inverter, Home Load)
+   2. SVG ENERGY FLOW WIRING & ANIMATION (ปรับเส้นให้เล็กพอดี)
+   ========================================================== */
+.flow-wiring {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.flow-path {
+  fill: none;
+  stroke-width: 0.75;            /* ปรับเส้นให้เล็กคม สมส่วน */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1.5 2;       /* ปรับระยะประให้ละเอียด นุ่มนวลขึ้น */
+  animation: energyFlow 1.2s linear infinite;
+}
+
+/* สีและ Effect แสงจางๆ ของเส้นพลังงาน */
+.solar-path {
+  stroke: #f59e0b;
+  filter: drop-shadow(0 0 1.5px rgba(245, 158, 11, 0.35));
+}
+
+.grid-path {
+  stroke: #6366f1;
+  filter: drop-shadow(0 0 1.5px rgba(99, 102, 241, 0.35));
+}
+
+.battery-path {
+  stroke: #10b981;
+  filter: drop-shadow(0 0 1.5px rgba(16, 185, 129, 0.35));
+}
+
+/* ==========================================================
+   2. SVG ENERGY FLOW WIRING & ANIMATION (เพิ่ม reverse-path)
+   ========================================================== */
+
+/* สลับทิศทางการวิ่ง (จาก Home -> Grid) */
+.flow-path.reverse-path {
+  animation: energyFlowReverse 1.2s linear infinite;
+}
+
+/* Keyframe สำหรับวิ่งย้อนกลับ (จากขวาไปซ้าย) */
+@keyframes energyFlowReverse {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 7; }
+}
+
+
+/* Keyframes อนิเมชันเคลื่อนที่เข้าหา Home */
+@keyframes energyFlow {
+  from { stroke-dashoffset: 7; }
+  to { stroke-dashoffset: 0; }
+}
+
+
+/* ==========================================================
+   3. COMMON NODE CARDS (การ์ดทรงกลม)
    ========================================================== */
 .flow-node {
-  flex: 1;
-  min-width: 0;
-  padding: 20px 16px;
-  border-radius: 16px;
-  text-align: center;
+  position: relative;
+  z-index: 1;
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
   background: #ffffff;
-  border: 1px solid rgba(228, 239, 237, 0.8);
-  box-shadow: 0 4px 16px rgba(23, 59, 64, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05),
+              0 8px 10px -6px rgba(0, 0, 0, 0.01);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  gap: 2px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .flow-node:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(23, 59, 64, 0.08);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
 }
 
-/* Node Icon Styling */
+/* ชื่อหัวข้อเหนือการ์ด */
+.node-title {
+  position: absolute;
+  top: -24px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ไอคอนภายใน Node */
 .node-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 17px;
+  margin-bottom: 2px;
   transition: transform 0.3s ease;
 }
 
 .flow-node:hover .node-icon-wrapper {
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
-/* Typography Inside Nodes */
-.node-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 100%;
-}
-
-.node-title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted, #789195);
-  letter-spacing: -0.1px;
-}
-
-/* Font อ่านง่าย นุ่มนวล ไม่ใช้ Space Grotesk */
+/* ตัวเลขแสดงค่าพลังงาน */
 .node-value {
-  display: block;
-  font-family: 'Inter', 'DM Sans', -apple-system, sans-serif;
-  font-size: 22px;
-  font-weight: 600;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: -0.5px;
-  line-height: 1.2;
-  margin-top: 2px;
 }
 
 .node-value small {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
-  opacity: 0.75;
+  opacity: 0.7;
+  margin-left: 1px;
 }
 
-.node-caption {
-  font-size: 11px;
-  font-weight: 500;
-  color: #94a3b8;
-  margin-top: 2px;
-}
 
-/* Color Theming per Node Type */
-/* 1. Solar Node */
+/* ==========================================================
+   4. NODE THEMES & INDIVIDUAL ACCENTS (ธีมสี)
+   ========================================================== */
+
+/* 4.1 Solar Node */
 .solar-node {
-  background: linear-gradient(180deg, #ffffff 0%, #fffdf7 100%);
-  border-color: #fef0d1;
+  grid-area: solar;
+  background: linear-gradient(145deg, #ffffff, #fffdf5);
+  border-color: #fef3c7;
 }
 .solar-node .node-icon-wrapper {
   background: #fef3c7;
@@ -134,229 +195,89 @@
   color: #b45309;
 }
 
-/* 2. Inverter Node (Centerpiece) */
-.inverter-node {
-  background: linear-gradient(180deg, #ffffff 0%, #f0fdf9 100%);
-  border-color: #a7f3d0;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+/* 4.2 Grid Node */
+.grid-node {
+  grid-area: grid;
+  background: linear-gradient(145deg, #ffffff, #f5f6ff);
+  border-color: #e0e7ff;
 }
-.inverter-node .node-icon-wrapper {
-  background: #d1fae5;
+.grid-node .node-icon-wrapper {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+.grid-node .node-value {
+  color: #4338ca;
+}
+
+/* 4.3 Battery Node */
+.battery-node {
+  grid-area: battery;
+  background: linear-gradient(145deg, #ffffff, #f0fdf4);
+  border-color: #dcfce7;
+}
+.battery-node .node-icon-wrapper {
+  background: #dcfce7;
   color: #059669;
 }
-.inverter-node .node-value {
+.battery-node .node-value {
   color: #047857;
 }
 
-/* 3. Load Node */
-.load-node {
-  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
-  border-color: #bae6fd;
+/* 4.4 Home Node */
+.home-node {
+  grid-area: home;
+  background: linear-gradient(145deg, #ffffff, #f0f9ff);
+  border: 2.5px solid #0284c7;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.15);
 }
-.load-node .node-icon-wrapper {
+.home-node .node-icon-wrapper {
   background: #e0f2fe;
   color: #0284c7;
 }
-.load-node .node-value {
+.home-node .node-value {
   color: #0369a1;
 }
 
-/* ==========================================================
-   DYNAMIC FLOW CONNECTORS (Animated Pulse)
-   ========================================================== */
-.flow-connector {
-  flex: 0 0 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-}
-
-.connector-line {
-  width: 100%;
-  height: 3px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-}
-
-.solar-connector .connector-line { background: #fef0d1; }
-.load-connector .connector-line { background: #e0f2fe; }
-
-.pulse-dot {
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 40%;
-  height: 100%;
-  border-radius: 4px;
-  animation: flowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.solar-connector .pulse-dot {
-  background: linear-gradient(90deg, transparent, #f59e0b, transparent);
-}
-
-.load-connector .pulse-dot {
-  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
-}
-
-@keyframes flowPulse {
-  0% { left: -50%; }
-  100% { left: 150%; }
-}
 
 /* ==========================================================
-   SIDE FLOWS (Battery & Grid Cards)
+   5. RESPONSIVE DESIGN (สำหรับจอมือถือ)
    ========================================================== */
-.side-flows {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border-left: 1px dashed #e2e8f0;
-  padding-left: 28px;
-}
-
-.mini-flow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
-}
-
-.mini-flow:hover {
-  transform: translateX(2px);
-  border-color: #cbd5e1;
-}
-
-.mini-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.mini-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.mini-info b {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink, #1e293b);
-  letter-spacing: -0.1px;
-}
-
-.mini-info small {
-  font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 1px;
-}
-
-.mini-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-/* Battery Flow Style */
-.battery-flow .mini-icon-box {
-  background: #ecfdf5;
-  color: #10b981;
-}
-
-/* Grid Flow Style */
-.grid-flow .mini-icon-box {
-  background: #f0f3ff;
-  color: #6366f1;
-}
-
-/* ==========================================================
-   RESPONSIVE DESIGN (Mobile & Tablet Support)
-   ========================================================== */
-@media (max-width: 1024px) {
-  .flow-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .side-flows {
-    border-left: none;
-    border-top: 1px dashed #e2e8f0;
-    padding-left: 0;
-    padding-top: 20px;
-    flex-direction: row;
-  }
-
-  .mini-flow {
-    flex: 1;
-  }
-}
-
 @media (max-width: 640px) {
   .flow-panel {
-    padding: 20px 16px;
+    padding: 20px 12px;
   }
 
   .flow-main {
-    flex-direction: column;
-    gap: 8px;
+    grid-template-rows: repeat(2, 95px);
+  }
+
+  .flow-path {
+    stroke-width: 0.6;           /* ปรับเส้นในมือถือให้เล็กเรียวสวยงาม */
   }
 
   .flow-node {
-    width: 100%;
-    flex-direction: row;
-    justify-content: flex-start;
-    padding: 14px 16px;
-    gap: 16px;
-    text-align: left;
+    width: 82px;
+    height: 82px;
   }
 
-  .node-content {
-    align-items: flex-start;
+  .node-icon-wrapper {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
   }
 
-  .flow-connector {
-    height: 20px;
-    width: 100%;
-    padding: 0;
+  .node-value {
+    font-size: 14px;
   }
 
-  .connector-line {
-    width: 2px;
-    height: 100%;
-    margin: 0 auto;
-  }
-
-  .pulse-dot {
-    width: 100%;
-    height: 40%;
-    top: -50%;
-    left: 0;
-    animation: flowPulseVertical 2s infinite;
-  }
-
-  .side-flows {
-    flex-direction: column;
+  .node-title {
+    font-size: 10px;
+    top: -18px;
   }
 }
 
-@keyframes flowPulseVertical {
-  0% { top: -50%; }
-  100% { top: 150%; }
+@media (prefers-reduced-motion: reduce) {
+  .flow-path {
+    animation: none;
+  }
 }
