@@ -94,6 +94,12 @@ void send_ha_discovery()
   // 2. กลุ่มเซนเซอร์วัดค่าพลังงานและอื่นๆ (เซนเซอร์หลักไม่ระบุ category)
   send_sensor_config("LoadPercent", "Load Percent", "%", "", "mdi:ticket-percent", "");
   send_sensor_config("EnergyDaily", "Energy Daily", "kWh", "energy", "mdi:meter-electric", "");
+  send_sensor_config("energy_kWh", "Grid Energy Daily", "kWh", "energy", "mdi:transmission-tower", "");
+  send_sensor_config("energy_m_kWh", "Grid Energy Monthly", "kWh", "energy", "mdi:calendar-month", "");
+  send_sensor_config("solar_kWh", "Solar Energy Daily", "kWh", "energy", "mdi:solar-power", "");
+  send_sensor_config("solar_m_kWh", "Solar Energy Monthly", "kWh", "energy", "mdi:solar-panel-large", "");
+  send_sensor_config("gridCostMonthly", "Estimated Monthly Grid Bill", "THB", "", "mdi:cash-minus", "");
+  send_sensor_config("solarSavingsMonthly", "Estimated Monthly Solar Savings", "THB", "", "mdi:cash-plus", "");
   send_sensor_config("GridPower", "Grid Power", "W", "power", "mdi:transmission-tower", "");
   send_sensor_config("ActivePower", "Active Power", "W", "power", "mdi:transmission-tower", "");
   send_sensor_config("ApparentPower", "Apparent Power", "VA", "apparent_power", "mdi:transmission-tower", "");
@@ -139,6 +145,12 @@ void publish_all_states()
   // --- ดึงค่าฝั่ง Inverter ---
   doc["LoadPercent"] = inv.data.loadPercent;
   doc["EnergyDaily"] = energy_kWh;
+  doc["energy_kWh"] = energy_kWh;
+  doc["energy_m_kWh"] = energy_m_kWh;
+  doc["solar_kWh"] = solar_kWh;
+  doc["solar_m_kWh"] = solar_m_kWh;
+  doc["gridCostMonthly"] = gridCostMonthly;
+  doc["solarSavingsMonthly"] = solarSavingsMonthly;
   doc["GridPower"] = inv.data.gridPower;
   doc["ActivePower"] = inv.data.ActivePower;
   doc["ApparentPower"] = inv.data.ApparentPower;

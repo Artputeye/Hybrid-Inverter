@@ -23,14 +23,22 @@ String wsAllDataBase64()
 
     ///////////////////////Monotor////////////////////////////////
     doc["Load Percent"] = inv.data.loadPercent;
-    doc["Energy Daily"] = String(energy_kWh, 3);
+    doc["Energy Daily"] = energy_kWh;
+    doc["energy_kWh"] = energy_kWh;
+    doc["energy_m_kWh"] = energy_m_kWh;
+    doc["solar_kWh"] = solar_kWh;
+    doc["solar_m_kWh"] = solar_m_kWh;
+    doc["gridCostMonthly"] = gridCostMonthly;
+    doc["solarSavingsMonthly"] = solarSavingsMonthly;
+    doc["co2ReductionMonthlyKg"] = co2ReductionMonthlyKg;
+    doc["selfSufficiencyPct"] = selfSufficiencyPct;
     doc["Grid Power"] = inv.data.gridPower;
     doc["Output Apparent Power"] = inv.data.ApparentPower;
     doc["Output Active Power"] = inv.data.ActivePower;
     doc["Output Voltage"] = inv.data.outputVoltage;
-    doc["Output Current"] = String(inv.data.outputCurrent, 1);
+    doc["Output Current"] = inv.data.outputCurrent;
     doc["Output Frequency"] = inv.data.outputFrequency;
-    doc["Power Factor"] = String(inv.data.powerFactor, 2);
+    doc["Power Factor"] = inv.data.powerFactor;
     doc["PV Power"] = inv.data.pvPower;
     doc["PV Voltage"] = inv.data.pvVoltage;
     doc["PV Current"] = inv.data.pvCurrent;
@@ -74,9 +82,9 @@ String wsAllDataBase64()
     doc["Inverter Faults"] = inv.faultList;
 
     /////////////////////////////////////////////////////////////////////////
-    String jsonOut; // serialize JSON
-    serializeJson(doc, jsonOut);
-    return base64::encode(jsonOut); // encode Base64
+    char jsonBuffer[2304];
+    size_t len = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
+    return base64::encode((const uint8_t *)jsonBuffer, len);
 }
 
 void wsClear()

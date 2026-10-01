@@ -86,8 +86,7 @@
                 <path class="flow-path grid-path" d="M 12.5,75 L 62.5,75"></path>
 
                 <!-- Solar -> Home (วิ่งลงมาจาก Solar แล้วหักเลี้ยวขวาเข้า Home) -->
-                <path class="flow-path solar-path" d="M 37.5,25 L 37.5,70 L 62.5,70"></path>
-
+                <path class="flow-path solar-path" d="M 37.5,25 L 37.5,65 Q 37.5,70 42.5,70 L 62.5,70"></path>
                 <!-- Battery -> Home (วิ่งตรงจาก Battery เข้าหา Home) -->
                 <path class="flow-path battery-path" d="M 87.5,75 L 62.5,75"></path>
               </svg>
@@ -142,71 +141,65 @@
 
       </section>
 
-      <!-- 2. Live energy summary -->
+      <!-- Energy and cost metrics -->
       <section class="metrics-grid" aria-label="Energy summary">
-        <article class="metric-card solar-card">
-          <div class="metric-top"><span class="metric-icon">☼</span>
-            <p class="overline">SOLAR PRODUCTION</p><span class="trend neutral">Live</span>
+        <!-- Daily energy metrics: grid import and solar generation. -->
+        <article class="metric-card energy-summary-card">
+          <div class="metric-top"><span class="metric-icon">ϟ</span>
+            <p class="overline">DAILY ENERGY</p><span class="trend neutral">Today</span>
           </div>
-          <div class="metric-value"><span id="solarPower">--</span> <small id="solarPowerUnit">W</small></div>
-          <p class="metric-note">Today <strong id="energyDaily">-- kWh</strong></p>
-        </article>
-
-        <!-- BATTERY STORAGE -->
-        <article class="metric-card battery-card">
-          <div class="metric-top"><span class="metric-icon" aria-hidden="true">▣</span>
-            <p class="overline">BATTERY STORAGE</p><span class="trend neutral">Live</span>
-          </div>
-          <div class="battery-summary">
-            <div class="ring-wrapper">
-              <svg viewBox="0 0 40 40" class="ring-svg">
-                <circle class="ring-bg" cx="20" cy="20" r="17"></circle>
-              </svg>
-              <span id="batteryVoltageRing">--</span>
+          <div class="energy-summary-values">
+            <div class="energy-summary-row">
+              <span>Grid daily</span>
+              <strong><span id="gridEnergyDaily">--</span> <small>kWh</small></strong>
             </div>
-            <div>
-              <div class="metric-value compact"><span id="batteryVoltage">--</span><small> V</small></div>
-              <p class="metric-note">Temperature <strong id="batteryTemperature">-- °C</strong></p>
+            <div class="energy-summary-row">
+              <span>Solar daily</span>
+              <strong><span id="solarEnergyDaily">--</span> <small>kWh</small></strong>
             </div>
           </div>
         </article>
 
-        <!-- HOME LOAD -->
-        <article class="metric-card load-card">
-          <div class="metric-top"><span class="metric-icon">⌂</span>
-            <p class="overline">HOME LOAD</p><span class="trend neutral">Live</span>
+        <!-- Monthly energy metrics: grid import and solar generation. -->
+        <article class="metric-card energy-summary-card">
+          <div class="metric-top"><span class="metric-icon">ϟ</span>
+            <p class="overline">MONTHLY ENERGY</p><span class="trend neutral">This month</span>
           </div>
-          <div class="load-summary">
-            <div class="ring-wrapper">
-              <svg viewBox="0 0 40 40" class="ring-svg">
-                <circle class="ring-bg" cx="20" cy="20" r="17"></circle>
-                <circle id="loadRingCircle" class="ring-progress blue" cx="20" cy="20" r="17"
-                  style="stroke-dasharray: 106.81; stroke-dashoffset: 106.81;"></circle>
-              </svg>
-              <span id="loadRingValue">--<small>%</small></span>
+          <div class="energy-summary-values">
+            <div class="energy-summary-row">
+              <span>Grid monthly</span>
+              <strong><span id="gridEnergyMonthly">--</span> <small>kWh</small></strong>
             </div>
-            <div>
-              <div class="metric-value"><span id="homeLoad">--</span> <small id="homeLoadUnit">W</small></div>
-              <p class="metric-note">Load <strong id="loadPercent">--%</strong></p>
+            <div class="energy-summary-row">
+              <span>Solar monthly</span>
+              <strong><span id="solarEnergyMonthly">--</span> <small>kWh</small></strong>
             </div>
           </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top"><span class="metric-icon">฿</span>
+            <p class="overline">GRID BILL ESTIMATE</p><span class="trend neutral">Monthly</span>
+          </div>
+          <div class="metric-value"><span id="gridCostMonthly">--</span> <small>THB</small></div>
+          <p class="metric-note">Based on monthly grid imports</p>
         </article>
 
         <article class="metric-card savings-card">
           <div class="metric-top"><span class="metric-icon">฿</span>
-            <p class="overline">ESTIMATED SAVINGS</p><span class="trend neutral">Pending tariff</span>
+            <p class="overline">SOLAR SAVINGS</p><span class="trend neutral">Estimated</span>
           </div>
-          <div class="metric-value">--</div>
-          <p class="metric-note">Requires tariff and export history</p>
+          <div class="metric-value"><span id="solarSavingsMonthly">--</span> <small>THB</small></div>
+          <p class="metric-note">Assumes solar generation offsets usage</p>
         </article>
       </section>
 
-      <!-- 3. Load and output performance -->
+      <!-- 3. Load and output performance cards -->
       <section class="load-output-section">
-        <!-- LOAD Card -->
+        <!-- Load performance -->
         <article class="panel load-panel">
           <div class="panel-heading-center">
-            <p class="overline">LOAD</p>
+            <p class="overline">Load Performance</p>
           </div>
 
           <div class="gauge-wrapper">
@@ -221,110 +214,105 @@
               </svg>
 
               <div class="gauge-data">
-                <p class="overline">LOAD_PERCENT</p>
-              <div class="value"><span id="loadGaugePercent">--</span><span>%</span></div>
+                <p class="overline">Load Level</p>
+                <div class="value"><span id="loadGaugePercent">--</span><span>%</span></div>
               </div>
             </div>
           </div>
 
+          <!-- Load stats: active load and inverter core temperature. -->
           <div class="load-stats">
             <div class="load-stats-row">
-              <span class="lbl">MAX_CAP</span>
-              <span class="val">--</span>
-              <span class="lbl">ACTIVE</span>
+              <span class="lbl">Active Power</span>
               <span class="val"><span id="activeLoadPower">--</span> <span id="activeLoadPowerUnit">W</span></span>
-            </div>
-            <div class="load-stats-row">
-              <span class="lbl">PEAK_DAY</span>
-              <span class="val">--</span>
-              <span class="lbl">HEADROOM</span>
-              <span class="val highlight-green">--</span>
+              <span class="lbl">Core Temperature</span>
+              <span class="val highlight-green"><span id="coreTemp">--</span> °C</span>
             </div>
           </div>
         </article>
 
-        <!-- OUTPUT_PERFORMANCE Card -->
+        <!-- AC output performance -->
         <article class="panel performance-panel">
           <div class="panel-heading">
             <div>
-              <p class="overline">OUTPUT_PERFORMANCE</p>
+              <p class="overline">Output Performance</p>
               <h2>Electrical Parameters</h2>
             </div>
             <span class="live-label"><span class="live-dot"></span>LIVE</span>
           </div>
 
           <div class="perf-grid">
-            <!-- ACTIVE_POWER -->
+            <!-- Active output power -->
             <div class="perf-card highlight-cyan">
               <div class="perf-card-header">
-                <p class="overline">ACTIVE_POWER</p>
+                <p class="overline">Active Power</p>
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="activePowerMetric">--</span> <small id="activePowerMetricUnit">W</small>
                 </div>
-                <div class="perf-sub-label">Active Load Output</div>
+                <div class="perf-sub-label">Real power output</div>
               </div>
             </div>
 
-            <!-- APPARENT_POWER -->
+            <!-- Apparent output power -->
             <div class="perf-card highlight-emerald">
               <div class="perf-card-header">
-                <p class="overline">APPARENT_POWER</p>
+                <p class="overline">Apparent Power</p>
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="apparentPowerMetric">--</span> <small
                     id="apparentPowerMetricUnit">VA</small></div>
-                <div class="perf-sub-label">Total Capacity</div>
+                <div class="perf-sub-label">Total AC output power</div>
               </div>
             </div>
 
-            <!-- VOLTAGE -->
+            <!-- Output voltage -->
             <div class="perf-card highlight-cyan">
               <div class="perf-card-header">
-                <p class="overline">VOLTAGE</p>
+                <p class="overline">Output Voltage</p>
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="outputVoltageMetric">--</span> <small>V</small></div>
-                <div class="perf-sub-label">Nominal AC Voltage</div>
+                <div class="perf-sub-label">AC output</div>
               </div>
             </div>
 
-            <!-- CURRENT -->
+            <!-- Output current -->
             <div class="perf-card highlight-emerald">
               <div class="perf-card-header">
-                <p class="overline">CURRENT</p>
+                <p class="overline">Output Current</p>
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="outputCurrentMetric">--</span> <small>A</small></div>
-                <div class="perf-sub-label">Output Amperage</div>
+                <div class="perf-sub-label">AC output current</div>
               </div>
             </div>
 
-            <!-- FREQUENCY -->
+            <!-- Output frequency -->
             <div class="perf-card highlight-cyan">
               <div class="perf-card-header">
-                <p class="overline">FREQUENCY</p>
+                <p class="overline">Output Frequency</p>
                 <span class="status-indicator"></span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="outputFrequencyMetric">--</span> <small>Hz</small></div>
-                <div class="perf-sub-label">Grid Frequency</div>
+                <div class="perf-sub-label">AC output frequency</div>
               </div>
             </div>
 
-            <!-- POWER_FACTOR -->
+            <!-- Power factor -->
             <div class="perf-card highlight-emerald">
               <div class="perf-card-header">
-                <p class="overline">POWER_FACTOR</p>
-                <span class="status-badge-mini">Live value</span>
+                <p class="overline">Power Factor</p>
+                <span class="status-badge-mini">Live</span>
               </div>
               <div class="perf-body">
                 <div class="value"><span id="powerFactorMetric">--</span> <small>PF</small></div>
-                <div class="perf-sub-label">Efficiency Ratio</div>
+                <div class="perf-sub-label">Real power / apparent power</div>
               </div>
             </div>
           </div>
@@ -334,7 +322,7 @@
       <!-- 4. Benefits, system status, and energy insights -->
       <section class="three-column-grid">
 
-        <!-- PANEL 1: MONTHLY BENEFIT -->
+        <!-- PANEL 1: MONTHLY ENERGY BENEFITS -->
         <article class="panel benefit-panel">
           <div class="panel-heading">
             <div>
@@ -344,16 +332,12 @@
           </div>
           <div class="benefit-list">
             <div class="benefit-item">
-              <span class="label">Energy savings</span>
-              <strong class="value">--</strong>
+              <span class="label">Energy savings (est.)</span>
+              <strong class="value" id="benefitEnergySavings">--</strong>
             </div>
             <div class="benefit-item">
-              <span class="label">Grid export revenue</span>
-              <strong class="value">--</strong>
-            </div>
-            <div class="benefit-item">
-              <span class="label">CO₂ reduction</span>
-              <strong class="value">--</strong>
+              <span class="label">CO₂ reduction (est.)</span>
+              <strong class="value" id="benefitCo2Reduction">--</strong>
             </div>
           </div>
         </article>
@@ -395,13 +379,6 @@
               </div>
             </div>
 
-            <!-- Item 4: CLOUD_SYNC -->
-            <div class="status-item">
-              <span class="status-name">CLOUD_SYNC</span>
-              <div class="status-value">
-                <span id="cloudSyncStatus">Not reported</span>
-              </div>
-            </div>
           </div>
         </article>
 
@@ -415,11 +392,6 @@
           </div>
           <div class="insights-content">
             <div class="insight-metric">
-              <p class="overline">DAILY YIELD</p>
-              <div class="metric-value highlight">
-              <span id="dailyYield">--</span> <small>kWh</small>
-              </div>
-            </div>
             <div class="insight-row">
               <div class="insight-col">
                 <p class="overline">PV CURRENT</p>
@@ -432,7 +404,7 @@
             </div>
             <div class="insight-progress">
               <div class="progress-label">
-                <p class="overline">SELF SUFFICIENCY</p>
+                <p class="overline">SELF SUFFICIENCY (EST.)</p>
                 <span class="progress-percent" id="selfSufficiencyValue">--</span>
               </div>
               <div class="progress-bar-bg">
@@ -452,8 +424,8 @@
           <div class="panel-heading">
             <div>
               <p class="overline">PV PRODUCTION</p>
-              <h2>Hourly solar production</h2>
-            </div><strong class="chart-total"><span id="chartEnergyDaily">--</span> <small>kWh</small></strong>
+              <h2>Recent solar power</h2>
+            </div><span class="trend neutral">Last 24 readings</span>
           </div>
           <div class="chart-wrap"><canvas id="solarChart" aria-label="Hourly solar production area chart"></canvas>
           </div>

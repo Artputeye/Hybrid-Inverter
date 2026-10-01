@@ -71,15 +71,12 @@ function updateLiveEnergyFlow(values) {
   2. Live energy summary
   -------------------------------------------------------------------------- */
 function updateEnergySummary(values) {
-  const { pvRaw, activeRaw, batteryVoltage, temperature, energyDaily } = values;
+  const { gridDaily, gridMonthly, solarDaily, solarMonthly } = values;
 
-  setPower("solarPower", "solarPowerUnit", pvRaw);
-  setPower("homeLoad", "homeLoadUnit", activeRaw);
-  setText("batteryVoltage", batteryVoltage === null ? "--" : batteryVoltage.toFixed(1));
-  setText("batteryVoltageRing", batteryVoltage === null ? "--" : `${batteryVoltage.toFixed(1)}V`);
-  setText("batteryTemperature", temperature === null ? "-- °C" : `${temperature.toFixed(0)} °C`);
-  setText("energyDaily", energyDaily === null ? "-- kWh" : `${energyDaily.toFixed(3)} kWh`);
-  setText("chartEnergyDaily", energyDaily === null ? "--" : energyDaily.toFixed(3));
+  setText("gridEnergyDaily", gridDaily === null ? "--" : gridDaily.toFixed(3));
+  setText("gridEnergyMonthly", gridMonthly === null ? "--" : gridMonthly.toFixed(3));
+  setText("solarEnergyDaily", solarDaily === null ? "--" : solarDaily.toFixed(3));
+  setText("solarEnergyMonthly", solarMonthly === null ? "--" : solarMonthly.toFixed(3));
 }
 
 /* --------------------------------------------------------------------------
@@ -100,7 +97,7 @@ function updateRing(circleId, percent, circumference) {
 }
 
 function updateLoadAndOutput(data, values) {
-  const { activeRaw } = values;
+  const { activeRaw, temperature } = values;
   const loadPercent = numberValue(data["Load Percent"]);
   const apparentPower = numberValue(data["Output Apparent Power"]);
 
@@ -108,6 +105,7 @@ function updateLoadAndOutput(data, values) {
   setText("loadRingValue", loadPercent === null ? "--%" : `${loadPercent.toFixed(0)}%`);
   setText("loadGaugePercent", loadPercent === null ? "--" : loadPercent.toFixed(0));
   setPower("activeLoadPower", "activeLoadPowerUnit", activeRaw);
+  setText("coreTemp", temperature === null ? "--" : temperature.toFixed(1));
   setPower("activePowerMetric", "activePowerMetricUnit", activeRaw);
   setPower("apparentPowerMetric", "apparentPowerMetricUnit", apparentPower, "VA", "kVA");
   setText("outputVoltageMetric", formatFixed(data["Output Voltage"], 1));
@@ -146,10 +144,33 @@ function updateSystemStatus(data, values) {
   setText("systemStatusBadge", fault ? "FAULT" : hasTelemetry ? "LIVE DATA" : "NO DATA");
 }
 
-function updateEnergyInsights(data, energyDaily) {
-  setText("dailyYield", energyDaily === null ? "--" : energyDaily.toFixed(3));
+function updateEnergyInsights(data) {
   setText("pvCurrent", formatFixed(data["PV Current"], 1));
   setText("pvVoltage", formatFixed(data["PV Voltage"], 1));
+
+  const selfSufficiency = numberValue(data.selfSufficiencyPct);
+  const boundedPercent = selfSufficiency === null ? 0 : Math.min(100, Math.max(0, selfSufficiency));
+  setText("selfSufficiencyValue", selfSufficiency === null ? "--" : `${boundedPercent.toFixed(1)}%`);
+  const progressBar = document.getElementById("selfSufficiencyBar");
+  if (progressBar) progressBar.style.width = `${boundedPercent}%`;
+}
+
+function updateExpenseSummary(data) {
+  ["gridCostMonthly", "solarSavingsMonthly"].forEach((key) => {
+    const amount = numberValue(data[key]);
+    setText(key, amount === null ? "--" : amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  });
+}
+
+/* --------------------------------------------------------------------------
+  5. Monthly energy benefits
+  -------------------------------------------------------------------------- */
+function updateEnergyBenefits(data) {
+  const energySavings = numberValue(data.solarSavingsMonthly);
+  const co2Reduction = numberValue(data.co2ReductionMonthlyKg);
+
+  setText("benefitEnergySavings", energySavings === null ? "--" : `${energySavings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} THB`);
+  setText("benefitCo2Reduction", co2Reduction === null ? "--" : `${co2Reduction.toFixed(2)} kg`);
 }
 
 function applyTelemetry(data) {
@@ -158,14 +179,19 @@ function applyTelemetry(data) {
   const activeRaw = numberValue(data["Output Active Power"]);
   const batteryVoltage = numberValue(data["Battery Voltage"]);
   const temperature = numberValue(data.Temperature);
-  const energyDaily = numberValue(data["Energy Daily"]);
+  const gridDaily = numberValue(data.energy_kWh ?? data["Energy Daily"]);
+  const gridMonthly = numberValue(data.energy_m_kWh);
+  const solarDaily = numberValue(data.solar_kWh);
+  const solarMonthly = numberValue(data.solar_m_kWh);
 
-  const values = { pvRaw, gridRaw, activeRaw, batteryVoltage, temperature, energyDaily };
+  const values = { pvRaw, gridRaw, activeRaw, batteryVoltage, temperature, gridDaily, gridMonthly, solarDaily, solarMonthly };
   updateLiveEnergyFlow(values);
   updateEnergySummary(values);
   updateLoadAndOutput(data, values);
   updateSystemStatus(data, values);
-  updateEnergyInsights(data, energyDaily);
+  updateEnergyInsights(data);
+  updateExpenseSummary(data);
+  updateEnergyBenefits(data);
   setText("lastUpdate", new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
   appendHistory(pvRaw, activeRaw, gridRaw);
 }

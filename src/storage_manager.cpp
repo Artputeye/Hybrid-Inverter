@@ -124,6 +124,53 @@ bool loadAllSettings()
     return true;
 }
 
+// ------------------------------------------------------------------------------
+// Expense Settings: load progressive tariff rates and refresh monthly estimates.
+// ------------------------------------------------------------------------------
+bool loadExpenseSettings()
+{
+    // Load progressive tariff and additional expense settings.
+    JsonDocument expenseDoc;
+    expenseUnitCost1 = 200.0f;
+    expensePriceCost1 = 3.0000f;
+    expenseUnitCost2 = 400.0f;
+    expensePriceCost2 = 4.1584f;
+    expensePriceCost3 = 4.3583f;
+    expenseUnitSolar = 450.0f;
+    expenseFt = 0.3972f;
+    expenseServiceFee = 38.22f;
+    expenseVatRate = 7.0f;
+
+    bool expenseLoaded = loadJsonFile("/expense.json", expenseDoc);
+    if (expenseLoaded)
+    {
+        expenseUnitCost1 = expenseDoc["UnitCost1"] | 200.0f;
+        expensePriceCost1 = expenseDoc["PriceCost1"] | 3.0000f;
+        expenseUnitCost2 = expenseDoc["UnitCost2"] | 400.0f;
+        expensePriceCost2 = expenseDoc["PriceCost2"] | 4.1584f;
+        expensePriceCost3 = expenseDoc["PriceCost3"] | 4.3583f;
+        expenseUnitSolar = expenseDoc["UnitSolar"] | 450.0f;
+        expenseFt = expenseDoc["ft"] | 0.3972f;
+        expenseServiceFee = expenseDoc["ServiceFee"] | 38.22f;
+        expenseVatRate = expenseDoc["VatRate"] | 7.0f;
+    }
+
+    if (!isfinite(expenseUnitCost1) || expenseUnitCost1 < 0.0f) expenseUnitCost1 = 200.0f;
+    if (!isfinite(expensePriceCost1) || expensePriceCost1 < 0.0f) expensePriceCost1 = 3.0000f;
+    if (!isfinite(expenseUnitCost2) || expenseUnitCost2 < expenseUnitCost1) expenseUnitCost2 = 400.0f;
+    if (!isfinite(expensePriceCost2) || expensePriceCost2 < 0.0f) expensePriceCost2 = 4.1584f;
+    if (!isfinite(expensePriceCost3) || expensePriceCost3 < 0.0f) expensePriceCost3 = 4.3583f;
+    if (!isfinite(expenseUnitSolar) || expenseUnitSolar < 0.0f) expenseUnitSolar = 450.0f;
+    if (!isfinite(expenseFt)) expenseFt = 0.3972f;
+    if (!isfinite(expenseServiceFee) || expenseServiceFee < 0.0f) expenseServiceFee = 38.22f;
+    if (!isfinite(expenseVatRate) || expenseVatRate < 0.0f || expenseVatRate > 100.0f) expenseVatRate = 7.0f;
+
+    updateExpenseTotals();
+    Serial.println(expenseLoaded ? F("📂 Expense settings loaded") : F("⚠️ Using default expense settings"));
+
+    return expenseLoaded;
+}
+
 // บันทึกเฉพาะโหมด WiFi (เช่น เมื่อกดเปลี่ยนโหมดผ่านปุ่ม IO0)
 bool saveWifiModeSetting()
 {
@@ -139,10 +186,11 @@ bool saveWifiModeSetting()
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+
 // For Energy management
 
 // ======================================================
-// 🔹 ฟังก์ชันโหลดค่า energy_kWh จาก LittleFS
+// 🔹 ฟังก์ชันโหลดค่า energy จาก LittleFS
 // ======================================================
 bool loadEnergyFromFile()
 {
@@ -150,13 +198,20 @@ bool loadEnergyFromFile()
     {
         Serial.println("⚠️ Using default gridOpr = 0 (manual mode)");
     }
+    if (!loadExpenseSettings())
+    {
+        Serial.println("⚠️ Using default expense settings");
+    }
 
     Serial.println("📂 Loading energy data...");
 
     if (!LittleFS.exists(energyFile))
     {
-        Serial.println("⚠️ No previous energy.json found, setting energy_kWh = 0.0");
+        Serial.println("⚠️ No previous energy.json found, setting defaults to 0.0");
         energy_kWh = 0.0;
+        energy_m_kWh = 0.0;
+        solar_kWh = 0.0;
+        solar_m_kWh = 0.0;
         return false;
     }
 
@@ -165,6 +220,9 @@ bool loadEnergyFromFile()
     {
         Serial.println("❌ Failed to open energy.json for reading");
         energy_kWh = 0.0;
+        energy_m_kWh = 0.0;
+        solar_kWh = 0.0;
+        solar_m_kWh = 0.0;
         return false;
     }
 
@@ -176,28 +234,37 @@ bool loadEnergyFromFile()
     {
         Serial.printf("❌ Failed to parse energy.json: %s\n", error.c_str());
         energy_kWh = 0.0;
+        energy_m_kWh = 0.0;
+        solar_kWh = 0.0;
+        solar_m_kWh = 0.0;
         return false;
     }
 
-    energy_kWh = doc["energy_kWh"] | 0.0;
+    energy_kWh   = doc["energy_kWh"]   | 0.0;
+    energy_m_kWh = doc["energy_m_kWh"] | 0.0;
+    solar_kWh    = doc["solar_kWh"]    | 0.0;
+    solar_m_kWh  = doc["solar_m_kWh"]  | 0.0;
 
-    if (isnan(energy_kWh))
-    {
-        Serial.println("⚠️ Warning: Loaded value is NaN, resetting to 0.0");
-        energy_kWh = 0.0;
-        return false;
-    }
+    if (isnan(energy_kWh)) energy_kWh = 0.0;
+    if (isnan(energy_m_kWh)) energy_m_kWh = 0.0;
+    if (isnan(solar_kWh)) solar_kWh = 0.0;
+    if (isnan(solar_m_kWh)) solar_m_kWh = 0.0;
 
-    Serial.printf("✅ Loaded energy_kWh = %.4f kWh from %s\n", energy_kWh, energyFile.c_str());
+    // Refresh monthly financial and environmental benefits using restored counters.
+    updateExpenseTotals();
+    updateSelfSufficiency();
+
+    Serial.printf("✅ Loaded energy: Grid(daily)=%.4f, Grid(monthly)=%.4f, Solar(daily)=%.4f, Solar(monthly)=%.4f kWh\n",
+                  energy_kWh, energy_m_kWh, solar_kWh, solar_m_kWh);
     return true;
 }
 
 // ======================================================
-// 🔹 ฟังก์ชันบันทึก energy_kWh ลงใน LittleFS
+// 🔹 ฟังก์ชันบันทึก energy ลงใน LittleFS
 // ======================================================
 bool saveEnergyToFile()
 {
-    Serial.printf("💾 Saving energy_kWh = %.4f to file...\n", energy_kWh);
+    Serial.printf("💾 Saving energy counters to file...\n");
 
     File file = LittleFS.open(energyFile, "w");
     if (!file)
@@ -207,7 +274,10 @@ bool saveEnergyToFile()
     }
 
     JsonDocument doc;
-    doc["energy_kWh"] = energy_kWh;
+    doc["energy_kWh"]   = energy_kWh;
+    doc["energy_m_kWh"] = energy_m_kWh;
+    doc["solar_kWh"]    = solar_kWh;
+    doc["solar_m_kWh"]  = solar_m_kWh;
 
     size_t written = serializeJson(doc, file);
     file.flush();
@@ -221,31 +291,38 @@ bool saveEnergyToFile()
     }
 
     // ตรวจสอบจากไฟล์จริงหลังบันทึก
-    float verifyValue = 0.0;
+    float verifyGrid = 0.0;
     File verifyFile = LittleFS.open(energyFile, "r");
     if (verifyFile)
     {
         JsonDocument verifyDoc;
         if (deserializeJson(verifyDoc, verifyFile) == DeserializationError::Ok)
         {
-            verifyValue = verifyDoc["energy_kWh"] | -1.0;
+            verifyGrid = verifyDoc["energy_kWh"] | -1.0;
         }
         verifyFile.close();
     }
 
-    if (fabs(verifyValue - energy_kWh) > 0.0001)
+    if (fabs(verifyGrid - energy_kWh) > 0.0001)
     {
-        Serial.printf("⚠️ Warning: Mismatch detected (expected %.4f, got %.4f)\n", energy_kWh, verifyValue);
+        Serial.printf("⚠️ Warning: Mismatch detected (expected %.4f, got %.4f)\n", energy_kWh, verifyGrid);
         return false;
     }
 
-    Serial.printf("✅ File write verified: %.4f kWh saved successfully\n", energy_kWh);
+    Serial.printf("✅ File write verified: Grid=%.4f, Solar=%.4f kWh saved successfully\n", energy_kWh, solar_kWh);
     return true;
 }
 
 // ======================================================
-// 🔹 ฟังก์ชันเคลียร์ค่า energy_kWh และรีเซ็ตไฟล์
+// 🔹 ฟังก์ชันเคลียร์ค่า energy และรีเซ็ตไฟล์
 // ======================================================
+bool clearDailyEnergyCounters()
+{
+    energy_kWh = 0.0;
+    solar_kWh = 0.0;
+    return saveEnergyToFile();
+}
+
 bool clearEnergyFile()
 {
     Serial.println("🧹 Clearing energy.json file...");
@@ -257,10 +334,13 @@ bool clearEnergyFile()
             Serial.println("❌ Failed to remove old energy.json");
             return false;
         }
-        vTaskDelay(pdMS_TO_TICKS(50)); ;
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    energy_kWh = 0.0;
+    energy_kWh   = 0.0;
+    energy_m_kWh = 0.0;
+    solar_kWh    = 0.0;
+    solar_m_kWh  = 0.0;
 
     if (!saveEnergyToFile())
     {
@@ -268,7 +348,7 @@ bool clearEnergyFile()
         vTaskDelay(pdMS_TO_TICKS(200)); 
         if (!saveEnergyToFile())
         {
-            Serial.println("❌ Retry failed: energy_kWh reset failed");
+            Serial.println("❌ Retry failed: energy reset failed");
             return false;
         }
     }
@@ -278,14 +358,14 @@ bool clearEnergyFile()
         Serial.println("⚠️ Warning: Reload after clear failed");
         return false;
     }
-    if (energy_kWh == 0.0)
+    if (energy_kWh == 0.0 && solar_kWh == 0.0)
     {
-        Serial.println("✅ energy_kWh cleared successfully (0.0 kWh)");
+        Serial.println("✅ All energy counters cleared successfully (0.0 kWh)");
         return true;
     }
     else
     {
-        Serial.printf("⚠️ Warning: energy_kWh reset failed (%.4f != 0.0)\n", energy_kWh);
+        Serial.printf("⚠️ Warning: energy reset failed\n");
         return false;
     }
 }

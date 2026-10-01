@@ -16,6 +16,7 @@ void setupRouteAPIs()
   String configFiles[] = {
       "/networkconfig.json",
       "/setting.json",
+      "/expense.json",
       "/battery.json"};
   int fileCount = sizeof(configFiles) / sizeof(configFiles[0]);
   for (int i = 0; i < fileCount; i++)
@@ -85,34 +86,8 @@ void inverterSetting() // Control Route
         request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
         return;
       }
-      String setting   = doc["setting"].is<String>()     ? doc["setting"].as<String>()     : "";
-      uint16_t value   = doc["value"].is<uint16_t>()     ? doc["value"].as<uint16_t>()     : 0;
-      gridCutOff   = doc["gridCutOff"].is<int>()     ? doc["gridCutOff"].as<int>()     : -1;
-      gridStart    = doc["gridStart"].is<int>()      ? doc["gridStart"].as<int>()      : -1;
 
-      if (setting != "")
-      {
-        inv.valueToinv(setting, value);
-        Serial.printf("📥 Setting: %s = %d\n", setting.c_str(), value);
-      }
-
-      if (setting == "Grid Tie Auto"&&value==1 )
-      {
-        inv.gridOpr = true;
-        Serial.printf("📥 Grid Tie Auto: %s = %d\n", setting.c_str(), value);
-      }
-
-      if (setting == "Grid Tie Auto"&&value==0 )
-      {
-        inv.gridOpr = false;
-        Serial.printf("📥 Grid Tie Auto: %s = %d\n", setting.c_str(), value);
-      }
-
-      String response = "{\"status\":\"ok\"";
-      if (setting != "") response += ",\"setting\":\"" + setting + "\",\"value\":" + String(value);
-      if (gridCutOff != -1) response += ",\"gridCutOff\":" + String(gridCutOff);
-      if (gridStart  != -1) response += ",\"gridStart\":"  + String(gridStart);
-      response += "}";
+      String response = processInverterSetting(doc);
       request->send(200, "application/json", response); });
 }
 
@@ -236,6 +211,9 @@ void routeSettingAPI(String filename, String mode)
           }
           
           file.close();
+          if (fsPath == "/expense.json") {
+            loadExpenseSettings();
+          }
           Serial.printf("POST %s : Saved successfully\n", fsPath.c_str());
           request->send(200, "application/json", "{\"status\":\"success\"}");
         } });

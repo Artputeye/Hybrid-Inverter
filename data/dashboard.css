@@ -393,16 +393,35 @@ button {
   border-top: 3px solid var(--mint);
 }
 
-.solar-card {
-  border-top-color: var(--yellow);
-}
-
-.load-card {
-  border-top-color: var(--blue);
-}
-
 .savings-card {
   border-top-color: var(--pink);
+}
+
+.energy-summary-values {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.energy-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.energy-summary-row strong {
+  color: var(--ink);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.energy-summary-row small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .metric-top {

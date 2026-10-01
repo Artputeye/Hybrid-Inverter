@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Restore select, checkbox, and number controls.
       Object.keys(data).forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return;
+        if (!el || settingsViews.expense?.contains(el)) return;
         if (el.tagName === "SELECT") el.value = data[id];
         else if (el.type === "checkbox") el.checked = data[id] === "1" || data[id] === 1;
         else if (el.type === "number") el.value = data[id];
@@ -43,6 +43,17 @@ document.addEventListener("DOMContentLoaded", () => {
       updateTierLabelsUI();
     })
     .catch(err => console.error("❌ [RESTORE ERROR] Fetching settings:", err));
+
+  fetch('/expense.json')
+    .then(res => res.json())
+    .then(data => {
+      Object.keys(data).forEach(id => {
+        const input = document.getElementById(id);
+        if (input && settingsViews.expense?.contains(input) && input.type === "number") input.value = data[id];
+      });
+      updateTierLabelsUI();
+    })
+    .catch(err => console.error("❌ [RESTORE ERROR] Fetching expense settings:", err));
 });
 
 // --------------------------------------------------------------------------
@@ -146,22 +157,30 @@ function updateGridTieUI(isAuto) {
 // --------------------------------------------------------------------------
 // 6. Expense settings handler
 // --------------------------------------------------------------------------
-function saveExpenseSettings() {
+async function saveExpenseSettings() {
   const expenseData = {
-    UnitCost1: document.getElementById("UnitCost1")?.value || "200",
-    PriceCost1: document.getElementById("PriceCost1")?.value || "3.0000",
-    UnitCost2: document.getElementById("UnitCost2")?.value || "400",
-    PriceCost2: document.getElementById("PriceCost2")?.value || "4.1584",
-    PriceCost3: document.getElementById("PriceCost3")?.value || "4.3583",
-    UnitSolar: document.getElementById("UnitSolar")?.value || "450",
-    ft: document.getElementById("ft")?.value || "0.3972",
-    ServiceFee: document.getElementById("ServiceFee")?.value || "38.22",
-    VatRate: document.getElementById("VatRate")?.value || "7"
+    UnitCost1: Number(document.getElementById("UnitCost1")?.value || 200),
+    PriceCost1: Number(document.getElementById("PriceCost1")?.value || 3.0000),
+    UnitCost2: Number(document.getElementById("UnitCost2")?.value || 400),
+    PriceCost2: Number(document.getElementById("PriceCost2")?.value || 4.1584),
+    PriceCost3: Number(document.getElementById("PriceCost3")?.value || 4.3583),
+    UnitSolar: Number(document.getElementById("UnitSolar")?.value || 450),
+    ft: Number(document.getElementById("ft")?.value || 0.3972),
+    ServiceFee: Number(document.getElementById("ServiceFee")?.value || 38.22),
+    VatRate: Number(document.getElementById("VatRate")?.value || 7)
   };
 
   console.log("💰 [ACTION] Saving Expense Settings:", expenseData);
-  submitAllSettings();
-  alert("Expense settings saved successfully!");
+  const response = await postJSON('/expense.json', expenseData);
+  try {
+    if (JSON.parse(response).status === "success") {
+      alert("Expense settings saved successfully!");
+      return;
+    }
+  } catch (err) {
+    console.error("❌ [SAVE ERROR] Expense settings:", err);
+  }
+  alert("Unable to save expense settings.");
 }
 
 /**
@@ -222,9 +241,10 @@ function updateTierLabelsUI() {
 // --------------------------------------------------------------------------
 function submitAllSettings() {
   const data = {};
-  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.id && (data[el.id] = el.checked ? "1" : "0"));
-  document.querySelectorAll('input[type="number"]').forEach(el => el.id && (data[el.id] = el.value));
-  document.querySelectorAll('select').forEach(el => el.id && (data[el.id] = el.value));
+  const expenseView = document.getElementById("expenseSettingsView");
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.id && !expenseView?.contains(el) && (data[el.id] = el.checked ? "1" : "0"));
+  document.querySelectorAll('input[type="number"]').forEach(el => el.id && !expenseView?.contains(el) && (data[el.id] = el.value));
+  document.querySelectorAll('select').forEach(el => el.id && !expenseView?.contains(el) && (data[el.id] = el.value));
 
   console.log("💾 [SYNCING] Saving full state to /setting.json...");
   postJSON('/setting.json', data);

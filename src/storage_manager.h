@@ -13,11 +13,13 @@ bool saveJsonFile(const char *filename, const JsonDocument &doc);
 
 // Application Specific Settings
 bool loadAllSettings();
+bool loadExpenseSettings();
 bool saveWifiModeSetting();
 
 // Application Specific Energy
 bool loadEnergyFromFile();
 bool saveEnergyToFile();
+bool clearDailyEnergyCounters();
 bool clearEnergyFile();
 
 #endif
