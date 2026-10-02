@@ -147,6 +147,7 @@ void gridOperation()
     if (inv.energyreset)
     {
         Serial.println("Energy Reset Command Received");
+        updateEnergyHistory(true);
         bool success = clearEnergyFile();
         energy_kWh = 0.0;
         energy_m_kWh = 0.0;
@@ -174,6 +175,7 @@ void gridOperation()
     if (rtc.hour == 18 && rtc.minute == 0 && !clearedToday)
     {
         Serial.println("🕕 18:00 detected — initiating daily reset...");
+        updateEnergyHistory(true);
         bool success = clearDailyEnergyCounters();
 
         if (!success)
@@ -206,6 +208,7 @@ void gridOperation()
     if (rtc.day == monthlyResetDay && rtc.hour == 0 && rtc.minute == 0 && !clearedMonthly)
     {
         Serial.printf("🗓️ Mid-point Day %d 00:00 detected — resetting monthly energy counters...\n", monthlyResetDay);
+        updateEnergyHistory(true);
         energy_m_kWh = 0.0;
         solar_m_kWh = 0.0;
         clearedMonthly = true;
@@ -236,6 +239,7 @@ void gridOperation()
 
     updateExpenseTotals();
     updateSelfSufficiency();
+    updateEnergyHistory();
 
     if (millis() - lastGridOpr > gridOprInterval) // debug grid operation
     {

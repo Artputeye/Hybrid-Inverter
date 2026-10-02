@@ -1,219 +1,312 @@
 #include "energy_tracker.h"
 
-// 1. นิยาม Array สำหรับเก็บประวัติ
-float hourlyEnergy[24] = {0};
-float dailyEnergy[30] = {0};
+// History buckets are ordered oldest to newest; the last slot is the active period.
+float gridHourlyEnergy[24] = {0};
+float solarHourlyEnergy[24] = {0};
+float gridDailyEnergy[30] = {0};
+float solarDailyEnergy[30] = {0};
+float gridMonthlyEnergy[12] = {0};
+float solarMonthlyEnergy[12] = {0};
 
-static float lastHourEnergySnapshot = 0;
-static float lastDayEnergySnapshot = 0;
-static int secondCounter = 0;
-static int hourCounter = 0;
-static bool isFirstRun = true;
+static const char *jsonFilePath = "/energy_history.json";
+static const unsigned long historySaveIntervalMs = 15UL * 60UL * 1000UL;
 
-// พาธสำหรับเก็บไฟล์ JSON ใน LittleFS
-const char *jsonFilePath = "/energy_history.json";
+static bool historyInitialized = false;
+static bool historyFileLoaded = false;
+static unsigned long lastHistorySaveMillis = 0;
+static int64_t lastHourKey = 0;
+static int64_t lastDayKey = 0;
+static int64_t lastMonthKey = 0;
+static float lastGridDailySnapshot = 0.0f;
+static float lastSolarDailySnapshot = 0.0f;
+static float lastGridMonthlySnapshot = 0.0f;
+static float lastSolarMonthlySnapshot = 0.0f;
 
-// ฟังก์ชันสำหรับเลื่อนข้อมูลใน Array (FIFO)
-static void updateHistoryArray(float *array, int size, float newValue)
+// Convert a calendar date to a continuous day number for detecting skipped periods.
+static int64_t civilDayKey(int year, unsigned int month, unsigned int day)
 {
-    for (int i = size - 1; i > 0; i--)
-    {
-        array[i] = array[i - 1];
-    }
-    array[0] = newValue;
+    year -= month <= 2;
+    const int era = (year >= 0 ? year : year - 399) / 400;
+    const unsigned int yearOfEra = static_cast<unsigned int>(year - era * 400);
+    const unsigned int adjustedMonth = month > 2 ? month - 3 : month + 9;
+    const unsigned int dayOfYear = (153 * adjustedMonth + 2) / 5 + day - 1;
+    const unsigned int dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear;
+    return static_cast<int64_t>(era) * 146097 + dayOfEra;
 }
 
-// 💾 ฟังก์ชัน: ส่งค่าเป็น JSON ไปบันทึกใน LittleFS
-bool saveEnergyToJson()
+static bool readCurrentPeriodKeys(int64_t &hourKey, int64_t &dayKey, int64_t &monthKey)
 {
-    // จองพื้นที่สำหรับจัดรูปแบบ JSON (คำนวณจากขนาด Array 24 + 30 ช่อง)
-    JsonDocument doc;
-
-    // สร้าง Array ของประวัติชั่วโมงลง JSON
-    JsonArray hourlyJsonArray = doc["hourly"].to<JsonArray>();
-    for (int i = 0; i < 24; i++)
+    if (rtc.year < 2020 || rtc.month < 1 || rtc.month > 12 || rtc.day < 1 || rtc.day > 31 || rtc.hour < 0 || rtc.hour > 23)
     {
-        hourlyJsonArray.add(hourlyEnergy[i]);
-    }
-
-    // สร้าง Array ของประวัติวันลง JSON
-    JsonArray dailyJsonArray = doc["daily"].to<JsonArray>();
-    for (int i = 0; i < 30; i++)
-    {
-        dailyJsonArray.add(dailyEnergy[i]);
-    }
-
-    // บันทึกค่า Snapshot และสถานะตัวจับเวลาไปด้วย เพื่อไม่ให้เวลาเคลื่อนตอนดับ
-    doc["last_hour_snapshot"] = lastHourEnergySnapshot;
-    doc["last_day_snapshot"] = lastDayEnergySnapshot;
-    doc["second_counter"] = secondCounter;
-    doc["hour_counter"] = hourCounter;
-
-    // เปิดไฟล์ในระบบ LittleFS เพื่อเขียนทับ (Write Mode)
-    File file = LittleFS.open(jsonFilePath, FILE_WRITE);
-    if (!file)
-    {
-        Serial.println("❌ [FS] Failed to open file for writing");
         return false;
     }
 
-    // แปลงออบเจกต์เป็นข้อความ JSON ลงไฟล์
-    if (serializeJson(doc, file) == 0)
-    {
-        Serial.println("❌ [FS] Failed to write JSON to file");
-        file.close();
-        return false;
-    }
-
-    file.close();
-    Serial.println("💾 [FS] Energy history saved successfully to JSON!");
+    dayKey = civilDayKey(rtc.year, static_cast<unsigned int>(rtc.month), static_cast<unsigned int>(rtc.day));
+    hourKey = dayKey * 24 + rtc.hour;
+    monthKey = static_cast<int64_t>(rtc.year) * 12 + (rtc.month - 1);
     return true;
 }
 
-// 📖 ฟังก์ชัน: ดึงค่าจากไฟล์ JSON มาใช้งาน
+static float positiveCounter(float value)
+{
+    return isfinite(value) && value > 0.0f ? value : 0.0f;
+}
+
+static float counterDelta(float current, float previous)
+{
+    current = positiveCounter(current);
+    previous = positiveCounter(previous);
+    return current >= previous ? current - previous : current;
+}
+
+static void clearFloatArray(float *values, size_t size)
+{
+    for (size_t index = 0; index < size; index++)
+    {
+        values[index] = 0.0f;
+    }
+}
+
+static void shiftHistory(float *values, size_t size, int64_t periods)
+{
+    if (periods <= 0)
+    {
+        return;
+    }
+
+    if (periods >= static_cast<int64_t>(size))
+    {
+        clearFloatArray(values, size);
+        return;
+    }
+
+    const size_t shift = static_cast<size_t>(periods);
+    for (size_t index = 0; index < size - shift; index++)
+    {
+        values[index] = values[index + shift];
+    }
+    for (size_t index = size - shift; index < size; index++)
+    {
+        values[index] = 0.0f;
+    }
+}
+
+static void addToCurrentBucket(float *values, size_t size, float delta)
+{
+    values[size - 1] += delta;
+}
+
+static void writeHistoryArray(JsonDocument &doc, const char *key, const float *values, size_t size)
+{
+    JsonArray array = doc[key].to<JsonArray>();
+    for (size_t index = 0; index < size; index++)
+    {
+        array.add(values[index]);
+    }
+}
+
+static void readHistoryArray(JsonArrayConst array, float *values, size_t size)
+{
+    clearFloatArray(values, size);
+    const size_t count = array.size() < size ? array.size() : size;
+    for (size_t index = 0; index < count; index++)
+    {
+        float value = array[index] | 0.0f;
+        values[index] = positiveCounter(value);
+    }
+}
+
+static void migrateLegacyArray(JsonArrayConst array, float *values, size_t size)
+{
+    clearFloatArray(values, size);
+    const size_t count = array.size() < size ? array.size() : size;
+    for (size_t index = 0; index < count; index++)
+    {
+        float value = array[count - 1 - index] | 0.0f;
+        values[size - count + index] = positiveCounter(value);
+    }
+}
+
+// Persist all six time ranges plus counter snapshots used to calculate the next delta.
+bool saveEnergyToJson()
+{
+    JsonDocument doc;
+    doc["version"] = 2;
+    writeHistoryArray(doc, "grid_hourly", gridHourlyEnergy, 24);
+    writeHistoryArray(doc, "solar_hourly", solarHourlyEnergy, 24);
+    writeHistoryArray(doc, "grid_daily", gridDailyEnergy, 30);
+    writeHistoryArray(doc, "solar_daily", solarDailyEnergy, 30);
+    writeHistoryArray(doc, "grid_monthly", gridMonthlyEnergy, 12);
+    writeHistoryArray(doc, "solar_monthly", solarMonthlyEnergy, 12);
+
+    doc["hour_key"] = lastHourKey;
+    doc["day_key"] = lastDayKey;
+    doc["month_key"] = lastMonthKey;
+    doc["last_grid_daily"] = lastGridDailySnapshot;
+    doc["last_solar_daily"] = lastSolarDailySnapshot;
+    doc["last_grid_monthly"] = lastGridMonthlySnapshot;
+    doc["last_solar_monthly"] = lastSolarMonthlySnapshot;
+
+    File file = LittleFS.open(jsonFilePath, FILE_WRITE);
+    if (!file)
+    {
+        Serial.println(F("[ENERGY HISTORY] Failed to open history file for writing"));
+        return false;
+    }
+
+    const size_t written = serializeJson(doc, file);
+    file.close();
+    if (written == 0)
+    {
+        Serial.println(F("[ENERGY HISTORY] Failed to serialize history"));
+        return false;
+    }
+
+    return true;
+}
+
+// Load the current schema, or migrate the previous grid-only history arrays.
 bool loadEnergyFromJson()
 {
-    // ตรวจสอบว่ามีไฟล์อยู่จริงไหม
     if (!LittleFS.exists(jsonFilePath))
     {
-        Serial.println("ℹ️ [FS] No history file found. Starting with empty arrays.");
         return false;
     }
 
     File file = LittleFS.open(jsonFilePath, FILE_READ);
     if (!file)
     {
-        Serial.println("❌ [FS] Failed to open file for reading");
         return false;
     }
 
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, file);
     file.close();
-
     if (error)
     {
-        Serial.print("❌ [FS] JSON Deserialization failed: ");
-        Serial.println(error.c_str());
+        Serial.printf("[ENERGY HISTORY] Failed to parse history: %s\n", error.c_str());
         return false;
     }
 
-    // ถอดค่ากลังลง Array ชั่วโมง
-    JsonArray hourlyJsonArray = doc["hourly"];
-    for (int i = 0; i < 24 && i < hourlyJsonArray.size(); i++)
+    historyFileLoaded = true;
+    if ((doc["version"] | 0) >= 2)
     {
-        hourlyEnergy[i] = hourlyJsonArray[i];
-    }
+        readHistoryArray(doc["grid_hourly"].as<JsonArrayConst>(), gridHourlyEnergy, 24);
+        readHistoryArray(doc["solar_hourly"].as<JsonArrayConst>(), solarHourlyEnergy, 24);
+        readHistoryArray(doc["grid_daily"].as<JsonArrayConst>(), gridDailyEnergy, 30);
+        readHistoryArray(doc["solar_daily"].as<JsonArrayConst>(), solarDailyEnergy, 30);
+        readHistoryArray(doc["grid_monthly"].as<JsonArrayConst>(), gridMonthlyEnergy, 12);
+        readHistoryArray(doc["solar_monthly"].as<JsonArrayConst>(), solarMonthlyEnergy, 12);
 
-    // ถอดค่ากลับลง Array วัน
-    JsonArray dailyJsonArray = doc["daily"];
-    for (int i = 0; i < 30 && i < dailyJsonArray.size(); i++)
-    {
-        dailyEnergy[i] = dailyJsonArray[i];
-    }
-
-    // คืนค่าสถานะตัวจับเวลากลับมาทำต่อ
-    lastHourEnergySnapshot = doc["last_hour_snapshot"] | 0.0f;
-    lastDayEnergySnapshot = doc["last_day_snapshot"] | 0.0f;
-    secondCounter = doc["second_counter"] | 0;
-    hourCounter = doc["hour_counter"] | 0;
-    isFirstRun = false; // ข้ามการยึดค่าใหม่ตอนเปิดเครื่อง เพราะดึงค่าเดิมกลับมาแล้ว
-
-    Serial.println("📖 [FS] Energy history successfully restored from JSON!");
-    return true;
-}
-
-// FreeRTOS Task จัดการบันทึกพลังงาน
-static void energyTrackerTask(void *pvParameters)
-{
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(5000);
-    float previousEnergy = 0;
-
-    while (1)
-    {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
-        float currentTotal = energy_kWh;
-
-        if (isFirstRun)
-        {
-            lastHourEnergySnapshot = currentTotal;
-            lastDayEnergySnapshot = currentTotal;
-            previousEnergy = currentTotal;
-            isFirstRun = false;
-            Serial.printf("[ENERGY] Initialized Snapshot: %.4f kWh\n", currentTotal);
-            continue;
-        }
-
-        // ดักจับระบบรีเซ็ตพลังงานสะสม (ตอน 18:00 น.)
-        if (currentTotal < previousEnergy)
-        {
-            Serial.println("\n⚠️ [ENERGY] Detected main energy_kWh reset!");
-            lastHourEnergySnapshot = lastHourEnergySnapshot - previousEnergy;
-            lastDayEnergySnapshot = lastDayEnergySnapshot - previousEnergy;
-        }
-
-        previousEnergy = currentTotal;
-        secondCounter += 5;
-
-        // 1. ครบ 1 ชั่วโมง
-        if (secondCounter >= 3600)
-        {
-            float hourDelta = currentTotal - lastHourEnergySnapshot;
-            if (hourDelta < 0)
-                hourDelta = 0;
-
-            updateHistoryArray(hourlyEnergy, 24, hourDelta);
-            lastHourEnergySnapshot = currentTotal;
-            secondCounter = 0;
-            hourCounter++;
-
-            Serial.printf(">>> [ENERGY] 1 Hour passed. Consumed: %.4f kWh\n", hourDelta);
-
-            // 💾 เซฟประวัติลง LittleFS อัตโนมัติเมื่อข้อมูลมีการเปลี่ยนแปลง
-            saveEnergyToJson();
-        }
-
-        // 2. ครบ 1 วัน (24 ชั่วโมง)
-        if (hourCounter >= 24)
-        {
-            float dayDelta = currentTotal - lastDayEnergySnapshot;
-            if (dayDelta < 0)
-                dayDelta = 0;
-
-            updateHistoryArray(dailyEnergy, 30, dayDelta);
-            lastDayEnergySnapshot = currentTotal;
-            hourCounter = 0;
-
-            Serial.printf(">>>>>> [ENERGY] 1 Day passed. Consumed: %.4f kWh\n", dayDelta);
-
-            // 💾 เซฟประวัติลง LittleFS อัตโนมัติเมื่อข้อมูลมีการเปลี่ยนแปลง
-            saveEnergyToJson();
-        }
-    }
-}
-
-// ฟังก์ชันเริ่มต้นระบบ
-void initEnergyTracker()
-{
-    // ตรวจสอบความปลอดภัยและเปิดใช้งาน LittleFS ก่อน
-    if (!LittleFS.begin(true))
-    {
-        Serial.println("❌ [FS] LittleFS Mount Failed. (Format applied if true)");
+        lastHourKey = doc["hour_key"] | 0LL;
+        lastDayKey = doc["day_key"] | 0LL;
+        lastMonthKey = doc["month_key"] | 0LL;
+        lastGridDailySnapshot = positiveCounter(doc["last_grid_daily"] | 0.0f);
+        lastSolarDailySnapshot = positiveCounter(doc["last_solar_daily"] | 0.0f);
+        lastGridMonthlySnapshot = positiveCounter(doc["last_grid_monthly"] | 0.0f);
+        lastSolarMonthlySnapshot = positiveCounter(doc["last_solar_monthly"] | 0.0f);
+        historyInitialized = lastHourKey != 0 && lastDayKey != 0 && lastMonthKey != 0;
     }
     else
     {
-        // 📖 โหลดข้อมูลประวัติเก่ากลับคืนมาก่อนเริ่ม Task ใหม่
-        loadEnergyFromJson();
+        migrateLegacyArray(doc["hourly"].as<JsonArrayConst>(), gridHourlyEnergy, 24);
+        migrateLegacyArray(doc["daily"].as<JsonArrayConst>(), gridDailyEnergy, 30);
     }
 
-    xTaskCreatePinnedToCore(
-        energyTrackerTask,
-        "EnergyTracker",
-        4096,
-        NULL,
-        1,
-        NULL,
-        1);
+    return true;
+}
+
+// Update active buckets from counter deltas and save at 15-minute intervals.
+void updateEnergyHistory(bool force)
+{
+    const unsigned long now = millis();
+    if (!force && now - lastHistorySaveMillis < historySaveIntervalMs)
+    {
+        return;
+    }
+
+    int64_t hourKey;
+    int64_t dayKey;
+    int64_t monthKey;
+    if (!readCurrentPeriodKeys(hourKey, dayKey, monthKey))
+    {
+        return;
+    }
+
+    const float currentGridDaily = positiveCounter(energy_kWh);
+    const float currentSolarDaily = positiveCounter(solar_kWh);
+    const float currentGridMonthly = positiveCounter(energy_m_kWh);
+    const float currentSolarMonthly = positiveCounter(solar_m_kWh);
+
+    if (!historyInitialized)
+    {
+        lastHourKey = hourKey;
+        lastDayKey = dayKey;
+        lastMonthKey = monthKey;
+        lastGridDailySnapshot = currentGridDaily;
+        lastSolarDailySnapshot = currentSolarDaily;
+        lastGridMonthlySnapshot = currentGridMonthly;
+        lastSolarMonthlySnapshot = currentSolarMonthly;
+
+        // Seed current day/month totals so the chart has values immediately after startup.
+        if (!historyFileLoaded)
+        {
+            gridDailyEnergy[29] = currentGridDaily;
+            solarDailyEnergy[29] = currentSolarDaily;
+            gridMonthlyEnergy[11] = currentGridMonthly;
+            solarMonthlyEnergy[11] = currentSolarMonthly;
+        }
+
+        historyInitialized = true;
+        lastHistorySaveMillis = now;
+        saveEnergyToJson();
+        return;
+    }
+
+    const int64_t elapsedHours = hourKey > lastHourKey ? hourKey - lastHourKey : (hourKey < lastHourKey ? 1 : 0);
+    const int64_t elapsedDays = dayKey > lastDayKey ? dayKey - lastDayKey : (dayKey < lastDayKey ? 1 : 0);
+    const int64_t elapsedMonths = monthKey > lastMonthKey ? monthKey - lastMonthKey : (monthKey < lastMonthKey ? 1 : 0);
+
+    shiftHistory(gridHourlyEnergy, 24, elapsedHours);
+    shiftHistory(solarHourlyEnergy, 24, elapsedHours);
+    shiftHistory(gridDailyEnergy, 30, elapsedDays);
+    shiftHistory(solarDailyEnergy, 30, elapsedDays);
+    shiftHistory(gridMonthlyEnergy, 12, elapsedMonths);
+    shiftHistory(solarMonthlyEnergy, 12, elapsedMonths);
+
+    const float gridDailyDelta = counterDelta(currentGridDaily, lastGridDailySnapshot);
+    const float solarDailyDelta = counterDelta(currentSolarDaily, lastSolarDailySnapshot);
+    const float gridMonthlyDelta = counterDelta(currentGridMonthly, lastGridMonthlySnapshot);
+    const float solarMonthlyDelta = counterDelta(currentSolarMonthly, lastSolarMonthlySnapshot);
+
+    addToCurrentBucket(gridHourlyEnergy, 24, gridDailyDelta);
+    addToCurrentBucket(solarHourlyEnergy, 24, solarDailyDelta);
+    addToCurrentBucket(gridDailyEnergy, 30, gridDailyDelta);
+    addToCurrentBucket(solarDailyEnergy, 30, solarDailyDelta);
+    addToCurrentBucket(gridMonthlyEnergy, 12, gridMonthlyDelta);
+    addToCurrentBucket(solarMonthlyEnergy, 12, solarMonthlyDelta);
+
+    lastHourKey = hourKey;
+    lastDayKey = dayKey;
+    lastMonthKey = monthKey;
+    lastGridDailySnapshot = currentGridDaily;
+    lastSolarDailySnapshot = currentSolarDaily;
+    lastGridMonthlySnapshot = currentGridMonthly;
+    lastSolarMonthlySnapshot = currentSolarMonthly;
+    lastHistorySaveMillis = now;
+    saveEnergyToJson();
+}
+
+// Mount LittleFS and restore history after energy counters have loaded.
+void initEnergyTracker()
+{
+    if (!LittleFS.begin(true))
+    {
+        Serial.println(F("[ENERGY HISTORY] LittleFS mount failed"));
+        return;
+    }
+
+    loadEnergyFromJson();
+    lastHistorySaveMillis = millis();
+    updateEnergyHistory(true);
 }

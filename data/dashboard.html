@@ -83,12 +83,27 @@
              ------------------------------------------------------ -->
               <svg class="flow-wiring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                 <!-- Grid -> Home (วิ่งตรงจาก Grid ไปยัง Home) -->
-                <path class="flow-path grid-path" d="M 12.5,75 L 62.5,75"></path>
+                <path id="gridFlowRoute" class="flow-path grid-path" d="M 12.5,75 L 62.5,75"></path>
+                <ellipse class="flow-particle grid-particle" rx="0.675" ry="0.675">
+                  <animateMotion dur="2.4s" repeatCount="indefinite">
+                    <mpath href="#gridFlowRoute"></mpath>
+                  </animateMotion>
+                </ellipse>
 
                 <!-- Solar -> Home (วิ่งลงมาจาก Solar แล้วหักเลี้ยวขวาเข้า Home) -->
-                <path class="flow-path solar-path" d="M 37.5,25 L 37.5,65 Q 37.5,70 42.5,70 L 62.5,70"></path>
+                <path id="solarFlowRoute" class="flow-path solar-path" d="M 37.5,25 L 37.5,65 Q 37.5,70 42.5,70 L 62.5,70"></path>
+                <ellipse class="flow-particle solar-particle" rx="0.675" ry="0.675">
+                  <animateMotion dur="2s" repeatCount="indefinite">
+                    <mpath href="#solarFlowRoute"></mpath>
+                  </animateMotion>
+                </ellipse>
                 <!-- Battery -> Home (วิ่งตรงจาก Battery เข้าหา Home) -->
-                <path class="flow-path battery-path" d="M 87.5,75 L 62.5,75"></path>
+                <path id="batteryFlowRoute" class="flow-path battery-path" d="M 87.5,75 L 62.5,75"></path>
+                <ellipse class="flow-particle battery-particle" rx="0.675" ry="0.675">
+                  <animateMotion dur="2.8s" repeatCount="indefinite">
+                    <mpath href="#batteryFlowRoute"></mpath>
+                  </animateMotion>
+                </ellipse>
               </svg>
 
               <!-- ------------------------------------------------------
@@ -144,7 +159,7 @@
       <!-- Energy and cost metrics -->
       <section class="metrics-grid" aria-label="Energy summary">
         <!-- Daily energy metrics: grid import and solar generation. -->
-        <article class="metric-card energy-summary-card">
+        <article class="metric-card energy-summary-card daily-energy-card">
           <div class="metric-top"><span class="metric-icon">ϟ</span>
             <p class="overline">DAILY ENERGY</p><span class="trend neutral">Today</span>
           </div>
@@ -161,7 +176,7 @@
         </article>
 
         <!-- Monthly energy metrics: grid import and solar generation. -->
-        <article class="metric-card energy-summary-card">
+        <article class="metric-card energy-summary-card monthly-energy-card">
           <div class="metric-top"><span class="metric-icon">ϟ</span>
             <p class="overline">MONTHLY ENERGY</p><span class="trend neutral">This month</span>
           </div>
@@ -177,7 +192,7 @@
           </div>
         </article>
 
-        <article class="metric-card">
+        <article class="metric-card grid-bill-card">
           <div class="metric-top"><span class="metric-icon">฿</span>
             <p class="overline">GRID BILL ESTIMATE</p><span class="trend neutral">Monthly</span>
           </div>
@@ -185,7 +200,7 @@
           <p class="metric-note">Based on monthly grid imports</p>
         </article>
 
-        <article class="metric-card savings-card">
+        <article class="metric-card solar-savings-card">
           <div class="metric-top"><span class="metric-icon">฿</span>
             <p class="overline">SOLAR SAVINGS</p><span class="trend neutral">Estimated</span>
           </div>
@@ -209,7 +224,7 @@
                 <circle class="gauge-bg" cx="50" cy="50" r="42"></circle>
                 <!-- เส้น Progress สีเขียว ( stroke-dashoffset คำนวณจาก percent ) -->
                 <!-- ความยาวรอบวง 2 * π * 42 ≈ 263.89 -->
-                <circle id="loadGaugeCircle" class="gauge-progress" cx="50" cy="50" r="42"
+                <circle id="loadGaugeCircle" class="gauge-progress offline" cx="50" cy="50" r="42"
                   style="stroke-dasharray: 263.89; stroke-dashoffset: 263.89;"></circle>
               </svg>
 
@@ -220,11 +235,11 @@
             </div>
           </div>
 
-          <!-- Load stats: active load and inverter core temperature. -->
+          <!-- Load stats: rated output power and inverter core temperature. -->
           <div class="load-stats">
             <div class="load-stats-row">
-              <span class="lbl">Active Power</span>
-              <span class="val"><span id="activeLoadPower">--</span> <span id="activeLoadPowerUnit">W</span></span>
+              <span class="lbl">Rated Power</span>
+              <span class="val"><span id="ratedActivePower">--</span> <span id="ratedActivePowerUnit">kW</span></span>
               <span class="lbl">Core Temperature</span>
               <span class="val highlight-green"><span id="coreTemp">--</span> °C</span>
             </div>
@@ -243,7 +258,7 @@
 
           <div class="perf-grid">
             <!-- Active output power -->
-            <div class="perf-card highlight-cyan">
+            <div class="perf-card offline" id="activePowerCard">
               <div class="perf-card-header">
                 <p class="overline">Active Power</p>
                 <span class="status-indicator"></span>
@@ -256,7 +271,7 @@
             </div>
 
             <!-- Apparent output power -->
-            <div class="perf-card highlight-emerald">
+            <div class="perf-card offline" id="apparentPowerCard">
               <div class="perf-card-header">
                 <p class="overline">Apparent Power</p>
                 <span class="status-indicator"></span>
@@ -269,7 +284,7 @@
             </div>
 
             <!-- Output voltage -->
-            <div class="perf-card highlight-cyan">
+            <div class="perf-card offline" id="outputVoltageCard">
               <div class="perf-card-header">
                 <p class="overline">Output Voltage</p>
                 <span class="status-indicator"></span>
@@ -281,7 +296,7 @@
             </div>
 
             <!-- Output current -->
-            <div class="perf-card highlight-emerald">
+            <div class="perf-card offline" id="outputCurrentCard">
               <div class="perf-card-header">
                 <p class="overline">Output Current</p>
                 <span class="status-indicator"></span>
@@ -293,7 +308,7 @@
             </div>
 
             <!-- Output frequency -->
-            <div class="perf-card highlight-cyan">
+            <div class="perf-card offline" id="outputFrequencyCard">
               <div class="perf-card-header">
                 <p class="overline">Output Frequency</p>
                 <span class="status-indicator"></span>
@@ -305,7 +320,7 @@
             </div>
 
             <!-- Power factor -->
-            <div class="perf-card highlight-emerald">
+            <div class="perf-card offline" id="powerFactorCard">
               <div class="perf-card-header">
                 <p class="overline">Power Factor</p>
                 <span class="status-badge-mini">Live</span>
@@ -349,30 +364,31 @@
               <p class="overline">SYSTEM STATUS</p>
               <h2 id="systemStatusTitle">Waiting for telemetry</h2>
             </div>
-            <span id="systemStatusBadge" class="status-badge">Standby</span>
+            <span id="systemStatusBadge" class="status-badge offline">Standby</span>
           </div>
 
           <div class="status-list">
             <!-- Item 1: INVERTER -->
             <div class="status-item">
-              <span class="status-name">INVERTER</span>
+              <span class="status-name">Inverter</span>
               <div class="status-value" id="inverterStatusValue">
                 <span id="inverterStatus">--</span>
                 <span id="inverterLamp" class="status-lamp"></span>
               </div>
             </div>
 
-            <!-- Item 2: GRID_LINK -->
+            <!-- Grid voltage state -->
             <div class="status-item">
-              <span class="status-name">GRID VOLTAGE</span>
-              <div class="status-value">
+              <span class="status-name">Grid voltage</span>
+              <div class="status-value" id="gridStatusValue">
                 <span id="gridLinkStatus">-- V</span>
+                <span id="gridLamp" class="status-lamp"></span>
               </div>
             </div>
 
-            <!-- Item 3: BATTERY -->
+            <!-- Battery voltage state -->
             <div class="status-item">
-              <span class="status-name">BATTERY</span>
+              <span class="status-name">Battery</span>
               <div class="status-value" id="batteryStatusValue">
                 <span id="batteryStatus">--</span>
                 <span id="batteryLamp" class="status-lamp"></span>
@@ -419,27 +435,52 @@
            END SECTION: THREE COLUMN GRID
            ========================================================================== -->
 
+      <!-- CHARTS: ENERGY HISTORY -->
       <section class="charts-grid">
+        <!-- Energy history: persistent hourly, daily, or monthly kWh buckets. -->
         <article class="panel chart-panel">
           <div class="panel-heading">
             <div>
-              <p class="overline">PV PRODUCTION</p>
-              <h2>Recent solar power</h2>
-            </div><span class="trend neutral">Last 24 readings</span>
-          </div>
-          <div class="chart-wrap"><canvas id="solarChart" aria-label="Hourly solar production area chart"></canvas>
-          </div>
-        </article>
-        <article class="panel chart-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="overline">POWER COMPARISON</p>
-              <h2>Home load and grid power</h2>
+              <p class="overline">ENERGY HISTORY</p>
+              <h2>Grid and solar energy</h2>
             </div>
-            <div class="chart-legend"><span><i class="legend-blue"></i>Load</span><span><i class="legend-pink"></i>Grid
-                power</span></div>
+            <span class="trend neutral" id="energyHistoryStatus">Loading history</span>
           </div>
-          <div class="chart-wrap"><canvas id="loadChart" aria-label="Home load and grid power line chart"></canvas>
+          <div class="chart-history-tools">
+            <div class="energy-history-range" role="group" aria-label="Energy history period">
+              <button type="button" class="active" data-energy-range="hourly" aria-pressed="true">24 Hours</button>
+              <button type="button" data-energy-range="daily" aria-pressed="false">30 Days</button>
+              <button type="button" data-energy-range="monthly" aria-pressed="false">12 Months</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="solarChart" aria-label="Grid and solar energy history chart"></canvas>
+            <div id="energyHistoryCursor" class="energy-history-cursor" hidden></div>
+            <div id="energyHistoryTooltip" class="energy-history-tooltip" role="status" aria-live="polite" hidden>
+              <strong id="energyHistoryTooltipDate" class="energy-history-tooltip-date"></strong>
+              <div id="energyHistoryTooltipGrid" class="energy-history-tooltip-row">
+                <i class="tooltip-swatch grid-swatch" aria-hidden="true"></i>
+                <span>Grid import</span>
+                <strong id="energyHistoryTooltipGridValue">--</strong>
+              </div>
+              <div id="energyHistoryTooltipSolar" class="energy-history-tooltip-row">
+                <i class="tooltip-swatch solar-swatch" aria-hidden="true"></i>
+                <span>Solar</span>
+                <strong id="energyHistoryTooltipSolarValue">--</strong>
+              </div>
+              <div class="energy-history-tooltip-total">
+                <span>Total</span>
+                <strong id="energyHistoryTooltipTotal">--</strong>
+              </div>
+            </div>
+          </div>
+          <div class="energy-history-legend" role="group" aria-label="Energy history series">
+            <button type="button" class="active" data-energy-series="grid" aria-pressed="true">
+              <span class="energy-series-check" aria-hidden="true"></span>Grid import
+            </button>
+            <button type="button" class="active" data-energy-series="solar" aria-pressed="true">
+              <span class="energy-series-check" aria-hidden="true"></span>Solar
+            </button>
           </div>
         </article>
       </section>

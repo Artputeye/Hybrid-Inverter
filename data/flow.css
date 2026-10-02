@@ -58,14 +58,13 @@
 
 .flow-path {
   fill: none;
-  stroke-width: 0.75;            /* ปรับเส้นให้เล็กคม สมส่วน */
+  stroke-width: 0.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1.5 2;       /* ปรับระยะประให้ละเอียด นุ่มนวลขึ้น */
-  animation: energyFlow 1.2s linear infinite;
+  stroke-dasharray: none;
 }
 
-/* สีและ Effect แสงจางๆ ของเส้นพลังงาน */
+/* Solid route colors and moving energy particles */
 .solar-path {
   stroke: #f59e0b;
   filter: drop-shadow(0 0 1.5px rgba(245, 158, 11, 0.35));
@@ -81,26 +80,21 @@
   filter: drop-shadow(0 0 1.5px rgba(16, 185, 129, 0.35));
 }
 
-/* ==========================================================
-   2. SVG ENERGY FLOW WIRING & ANIMATION (เพิ่ม reverse-path)
-   ========================================================== */
-
-/* สลับทิศทางการวิ่ง (จาก Home -> Grid) */
-.flow-path.reverse-path {
-  animation: energyFlowReverse 1.2s linear infinite;
+.flow-particle {
+  opacity: 0.98;
+  pointer-events: none;
 }
 
-/* Keyframe สำหรับวิ่งย้อนกลับ (จากขวาไปซ้าย) */
-@keyframes energyFlowReverse {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: 7; }
+.solar-particle {
+  fill: #f59e0b;
 }
 
+.grid-particle {
+  fill: #6366f1;
+}
 
-/* Keyframes อนิเมชันเคลื่อนที่เข้าหา Home */
-@keyframes energyFlow {
-  from { stroke-dashoffset: 7; }
-  to { stroke-dashoffset: 0; }
+.battery-particle {
+  fill: #10b981;
 }
 
 
@@ -252,7 +246,7 @@
   }
 
   .flow-path {
-    stroke-width: 0.6;           /* ปรับเส้นในมือถือให้เล็กเรียวสวยงาม */
+    stroke-width: 0.4;
   }
 
   .flow-node {
@@ -277,7 +271,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flow-path {
-    animation: none;
+  .flow-particle {
+    display: none;
   }
 }

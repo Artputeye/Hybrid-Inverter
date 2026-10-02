@@ -330,6 +330,12 @@ button {
   box-shadow: none;
 }
 
+.status-lamp.warning {
+  border-color: #fbd38d;
+  background: #f59e0b;
+  box-shadow: 0 0 2px rgba(245, 158, 11, 0.4);
+}
+
 .status-lamp.fault {
   border-color: #ffd0cf;
   background: #e45b5b;
@@ -390,11 +396,7 @@ button {
 
 .metric-card {
   padding: 19px;
-  border-top: 3px solid var(--mint);
-}
-
-.savings-card {
-  border-top-color: var(--pink);
+  border-top: 3px solid #0ea5e9;
 }
 
 .energy-summary-values {
@@ -610,6 +612,18 @@ button {
   transition: stroke-dashoffset 0.5s ease-in-out;
 }
 
+.gauge-progress.warning {
+  stroke: #f59e0b;
+}
+
+.gauge-progress.fault {
+  stroke: #ef4444;
+}
+
+.gauge-progress.offline {
+  stroke: #94a3b8;
+}
+
 .gauge-data {
   position: absolute;
   text-align: center;
@@ -755,15 +769,20 @@ button {
   width: 4px;
   height: 100%;
   border-radius: 4px 0 0 4px;
-  opacity: 0.8;
-}
-
-.perf-card.highlight-cyan::before {
-  background: #0ea5e9;
-}
-
-.perf-card.highlight-emerald::before {
   background: #10b981;
+  opacity: 1;
+}
+
+.perf-card.warning::before {
+  background: #f59e0b;
+}
+
+.perf-card.fault::before {
+  background: #ef4444;
+}
+
+.perf-card.offline::before {
+  background: #94a3b8;
 }
 
 .status-indicator {
@@ -773,14 +792,20 @@ button {
   background: #cbd5e1;
 }
 
-.highlight-cyan .status-indicator {
-  background: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+.perf-card.normal .status-indicator {
+  background: #10b981;
 }
 
-.highlight-emerald .status-indicator {
-  background: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+.perf-card.warning .status-indicator {
+  background: #f59e0b;
+}
+
+.perf-card.fault .status-indicator {
+  background: #ef4444;
+}
+
+.perf-card.offline .status-indicator {
+  background: #cbd5e1;
 }
 
 .status-badge-mini {
@@ -834,48 +859,81 @@ button {
 /* Panel 2: System Status */
 .status-panel {
   min-height: 233px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: #168d76;
   background: #e8faf3;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge.online {
+  border-color: #bcebd9;
+  color: #168d76;
+  background: #e8faf3;
+}
+
+.status-badge.offline {
+  border-color: #e1e9e7;
+  color: #71888b;
+  background: #f0f5f4;
+}
+
+.status-badge.warning {
+  border-color: #fbd38d;
+  color: #b96a08;
+  background: #fff7e6;
+}
+
+.status-badge.fault {
+  border-color: #f4caca;
+  color: #c23e3e;
+  background: #fff0f0;
 }
 
 .status-list {
-  margin-top: 14px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .status-list .status-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background: #fbfcfd;
-  border-radius: 6px;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.status-list .status-item:last-child {
+  border-bottom: 0;
 }
 
 .status-list .status-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: #4b5563;
-  letter-spacing: 0.2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
 
 .status-value {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 .status-lamp {
@@ -902,6 +960,15 @@ button {
 }
 
 .status-value.degraded .status-lamp {
+  background-color: #f59e0b;
+}
+
+.status-value.warning {
+  color: #b96a08;
+}
+
+.status-value.warning .status-lamp {
+  border-color: #fbd38d;
   background-color: #f59e0b;
 }
 
@@ -993,11 +1060,11 @@ button {
 
 
 /* --------------------------------------------------------------------------
-   8. CHARTS SECTION
-   -------------------------------------------------------------------------- */
+  CHARTS: ENERGY HISTORY AND LIVE POWER
+  -------------------------------------------------------------------------- */
 .charts-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 18px;
   margin-top: 18px;
 }
@@ -1037,9 +1104,193 @@ button {
   background: var(--pink);
 }
 
+.chart-legend .legend-yellow {
+  background: var(--yellow);
+}
+
+/* Energy history controls and Home Assistant-style series legend */
+.chart-history-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.energy-history-range {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f5f8f7;
+}
+
+.energy-history-range button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.energy-history-range button.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(23, 59, 64, .12);
+}
+
+.energy-history-range button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.energy-history-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-top: 10px;
+}
+
+.energy-history-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.energy-series-check {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #78858a;
+  border-radius: 50%;
+  color: #fff;
+}
+
+[data-energy-series="grid"].active .energy-series-check {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+[data-energy-series="solar"].active .energy-series-check {
+  border-color: var(--yellow);
+  background: var(--yellow);
+}
+
+.energy-history-legend button.active {
+  color: var(--ink);
+}
+
+.energy-history-legend button.active .energy-series-check::after {
+  width: 7px;
+  height: 4px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  content: "";
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.energy-history-legend button:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+
 .chart-wrap {
+  position: relative;
   height: 245px;
   margin-top: 20px;
+}
+
+.energy-history-cursor {
+  position: absolute;
+  z-index: 1;
+  top: 28px;
+  bottom: 30px;
+  width: 0;
+  border-left: 1px dashed #789195;
+  pointer-events: none;
+}
+
+.energy-history-tooltip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+  min-width: 190px;
+  max-width: calc(100% - 16px);
+  padding: 11px 13px;
+  border: 1px solid rgba(220, 235, 232, .95);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 5px 18px rgba(25, 45, 43, .16);
+  color: var(--ink);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.energy-history-tooltip[hidden],
+.energy-history-cursor[hidden] {
+  display: none;
+}
+
+.energy-history-tooltip-date {
+  margin-bottom: 1px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.energy-history-tooltip-row,
+.energy-history-tooltip-total {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.energy-history-tooltip-row span,
+.energy-history-tooltip-total span {
+  flex: 1;
+}
+
+.energy-history-tooltip-row strong,
+.energy-history-tooltip-total strong {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tooltip-swatch {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+}
+
+.grid-swatch {
+  background: var(--blue);
+}
+
+.solar-swatch {
+  background: var(--yellow);
+}
+
+.energy-history-tooltip-total {
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
 }
 
 
@@ -1222,12 +1473,32 @@ button {
   }
 
   .chart-wrap {
+    position: relative;
     height: 210px;
   }
 
   .chart-legend {
     gap: 7px;
     font-size: 10px;
+  }
+
+  .chart-history-tools {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .energy-history-range {
+    width: 100%;
+  }
+
+  .energy-history-range button {
+    flex: 1;
+    padding-inline: 5px;
+  }
+
+  .energy-history-legend {
+    gap: 16px;
   }
 }
 
