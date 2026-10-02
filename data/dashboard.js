@@ -196,6 +196,9 @@ function updateLoadAndOutput(data, values) {
    -------------------------------------------------------------------------- */
 function updateSystemStatus(data, values) {
   const inverterFaultLevel = faultLevel(data["Inverter Faults"]);
+  const inverterFaultText = (Array.isArray(data["Inverter Faults"])
+    ? data["Inverter Faults"].join(", ")
+    : String(data["Inverter Faults"] ?? "")).trim();
   const inverterState = String(data["Inverter Status"] ?? "").trim();
   const inverterAvailable = inverterState !== "";
   const batteryAvailable = values.batteryVoltage !== null;
@@ -203,9 +206,9 @@ function updateSystemStatus(data, values) {
   const gridRatingVoltage = numberValue(data["Grid Rating Voltage"]);
   const batteryUnderVoltage = numberValue(data["Battery Under Voltage"]);
 
-  const inverterHealth = !inverterAvailable
-    ? "offline"
-    : inverterFaultLevel === "clear" ? "online" : inverterFaultLevel;
+  const inverterHealth = inverterFaultLevel !== "clear"
+    ? inverterFaultLevel
+    : inverterAvailable ? "online" : "offline";
 
   let gridHealth = gridVoltage === null ? "offline" : "online";
   if (gridVoltage !== null && gridRatingVoltage !== null && gridRatingVoltage > 0) {
@@ -224,8 +227,17 @@ function updateSystemStatus(data, values) {
   const systemWarning = [inverterHealth, gridHealth, batteryHealth].includes("warning");
   const hasTelemetry = values.pvRaw !== null || values.activeRaw !== null || batteryAvailable || inverterAvailable || gridVoltage !== null;
 
-  setText("inverterStatus", inverterHealth === "fault" ? "Fault" : inverterHealth === "warning" ? "Warning" : inverterState || "--");
+  // แสดง faultList โดยตรง: "Normal" → "Normal", มี fault → ชื่อ fault จาก QPIWS
+  // "N/A" สงวนไว้เมื่อ map bit แล้วไม่มีชื่อตรงกัน (inverterFaultText ว่าง)
+  const faultDisplay = inverterFaultText || "N/A";
+  setText("inverterStatus", faultDisplay);
   setStatusValueState("inverterStatusValue", "inverterLamp", inverterHealth);
+  const inverterStatusItem = document.getElementById("inverterStatusItem");
+  if (inverterStatusItem) {
+    inverterStatusItem.classList.toggle("has-fault", inverterHealth === "fault");
+    inverterStatusItem.classList.toggle("has-warning", inverterHealth === "warning");
+    inverterStatusItem.title = "";
+  }
 
   const batteryText = !batteryAvailable
     ? "Telemetry unavailable"

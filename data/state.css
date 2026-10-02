@@ -135,6 +135,15 @@
   background: #fff8f8;
 }
 
+.status-row-alert.has-warning {
+  border-color: #fbd38d;
+  background: #fffaf0;
+}
+
+.status-row-alert.has-warning strong {
+  color: #b96a08;
+}
+
 .status-row-alert.has-fault strong {
   color: #d65c5c;
 }
