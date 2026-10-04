@@ -30,6 +30,16 @@ void setup()
     Serial.println();
     delay(500);
 
+    // Mount LittleFS once during boot. All modules reuse this mount.
+    if (!LittleFS.begin(true))
+    {
+        Serial.println(F("[System] LittleFS mount failed"));
+    }
+    else
+    {
+        Serial.println(F("[System] LittleFS mounted"));
+    }
+
     displayLogs();            // 1. ดึง Log เก่าที่เคยค้างไว้ขึ้นมาโชว์ตอนเปิดเครื่อง
     checkAndLogResetReason(); // 2. เช็คว่าเปิดเครื่องรอบนี้ เพราะรอบก่อนหน้านี้ค้างจนโดน WDT สั่งรีเซ็ตไหม
     delay(500);
@@ -61,7 +71,7 @@ void setup()
     // Task Creation (แบ่งโหลดความสำคัญ)
     // Core 0: งานหลัก (Processing/Operation)
     // Core 1: งานสื่อสาร (WiFi/MQTT/Web) และ UI (LED)
-    xTaskCreatePinnedToCore(TaskMain, "Main", 4096, NULL, 3, NULL, 0);
+    xTaskCreatePinnedToCore(TaskMain, "Main", 8192, NULL, 3, NULL, 0);
     xTaskCreatePinnedToCore(TaskSub, "Sub", 8192, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskLED, "LED", 2048, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(TaskSerialReader, "SerialReader", 4096, NULL, 1, NULL, 0);
@@ -117,7 +127,7 @@ void TaskSub(void *pvParameters)
             lastStatus = millis();
             showAPClients();
         }
-        vTaskDelay(pdMS_TO_TICKS(5)); // ให้เวลาความสำคัญกับ Network สูงหน่อย
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -142,7 +152,7 @@ void TaskSerialReader(void *pvParameters)
     {
         if (Serial.available() > 0)
         {
-            String receivedData = Serial.readString();
+            String receivedData = Serial.readStringUntil('\n');
             receivedData.trim();        // ตัด \r \n ทิ้งเอง
             Serial.print("Received: "); // Debug ดูว่ามันเห็นอะไร
             Serial.println(receivedData);

@@ -12,7 +12,7 @@ void iotHAsetup()
   client.setServer(MQTT_SERVER, MQTT_PORT);
   client.setBufferSize(4096);
   client.setKeepAlive(60);
-  client.setSocketTimeout(60);
+  client.setSocketTimeout(3);
 }
 
 void iotHAloop()
@@ -33,21 +33,46 @@ void iotHAloop()
 }
 
 // ฟังก์ชันศูนย์กลางในการทำ MQTT Discovery ของเซนเซอร์แต่ละตัว
-void send_sensor_config(const char *object_id, const char *name, const char *unit, const char *device_class, const char *icon, const char *category)
+void send_sensor_config(const char *state_key, const char *name, const char *unit, const char *device_class, const char *icon, const char *category)
 {
-  String config_topic = String(discovery_prefix) + "/sensor/" + device_id + "/" + object_id + "/config";
+  // =========================================================================
+  // MQTT Discovery: Topic และ Entity ID
+  // state_key คือ key ที่ใช้ใน state JSON และต้องคงเดิม
+  // ส่วน object_id ของ Home Assistant จะผูกกับ DEVICE_NAME
+  // เช่น DEVICE_NAME = "Hybrid Inverter"
+  // -> sensor.hybrid_inverter_output_current
+  // =========================================================================
+  String config_topic = String(discovery_prefix) + "/sensor/" + device_id + "/" + state_key + "/config";
+
+  String entity_object_id = String(DEVICE_NAME) + "_" + state_key;
+  entity_object_id.toLowerCase();
+
+  // ทำชื่อให้เหมาะกับ Home Assistant: เว้นวรรค/อักขระพิเศษ -> _
+  for (size_t i = 0; i < entity_object_id.length(); ++i)
+  {
+    char c = entity_object_id[i];
+    if (!isalnum(static_cast<unsigned char>(c)) && c != '_')
+      entity_object_id.setCharAt(i, '_');
+  }
 
   JsonDocument doc;
+
+  // =========================================================================
+  // Sensor Identity / State
+  // =========================================================================
   doc["name"] = name;
+  doc["object_id"] = entity_object_id.c_str();
   doc["state_topic"] = state_topic;
 
-  // ใช้ดึงค่าตัวแปรจาก JSON ก้อนรวมด้วย value_template
-  String value_template = String("{{ value_json.") + object_id + " }}";
+  String value_template = String("{{ value_json.") + state_key + " }}";
   doc["value_template"] = value_template.c_str();
 
-  String unique_id = String(device_id) + "_" + object_id;
+  String unique_id = String(device_id) + "_" + entity_object_id;
   doc["unique_id"] = unique_id.c_str();
 
+  // =========================================================================
+  // Sensor Metadata
+  // =========================================================================
   if (unit && strlen(unit) > 0)
     doc["unit_of_measurement"] = unit;
   if (device_class && strlen(device_class) > 0)
@@ -57,13 +82,16 @@ void send_sensor_config(const char *object_id, const char *name, const char *uni
   if (category && strlen(category) > 0)
     doc["entity_category"] = category;
 
-  // การตั้งค่าความพร้อมใช้งาน (Availability)
-
+  // =========================================================================
+  // Availability
+  // =========================================================================
   doc["availability_topic"] = availability_topic;
   doc["payload_available"] = "online";
   doc["payload_not_available"] = "offline";
 
-  // โครงสร้างหลักของตัวอุปกรณ์ (Device)
+  // =========================================================================
+  // Home Assistant Device
+  // =========================================================================
   JsonObject dev = doc["device"].to<JsonObject>();
   JsonArray ids = dev["identifiers"].to<JsonArray>();
   ids.add(device_id);
@@ -72,13 +100,16 @@ void send_sensor_config(const char *object_id, const char *name, const char *uni
   dev["manufacturer"] = D_Mfac;
   dev["model"] = D_Model;
 
+  // =========================================================================
+  // Publish Discovery Configuration
+  // =========================================================================
   char buffer[1024];
   serializeJson(doc, buffer, sizeof(buffer));
+
   Serial.print("Publishing discovery: ");
   Serial.println(config_topic);
   client.publish(config_topic.c_str(), buffer, true);
   client.loop();
-  vTaskDelay(50);
 }
 
 void send_ha_discovery()
@@ -98,8 +129,8 @@ void send_ha_discovery()
   send_sensor_config("energy_m_kWh", "Grid Energy Monthly", "kWh", "energy", "mdi:calendar-month", "");
   send_sensor_config("solar_kWh", "Solar Energy Daily", "kWh", "energy", "mdi:solar-power", "");
   send_sensor_config("solar_m_kWh", "Solar Energy Monthly", "kWh", "energy", "mdi:solar-panel-large", "");
-  send_sensor_config("gridCostMonthly", "Estimated Monthly Grid Bill", "THB", "", "mdi:cash-minus", "");
-  send_sensor_config("solarSavingsMonthly", "Estimated Monthly Solar Savings", "THB", "", "mdi:cash-plus", "");
+  send_sensor_config("gridCostMonthly", "Monthly Grid Bill", "THB", "", "mdi:cash-minus", "");
+  send_sensor_config("solarSavingsMonthly", "Monthly Solar Savings", "THB", "", "mdi:cash-plus", "");
   send_sensor_config("GridPower", "Grid Power", "W", "power", "mdi:transmission-tower", "");
   send_sensor_config("ActivePower", "Active Power", "W", "power", "mdi:transmission-tower", "");
   send_sensor_config("ApparentPower", "Apparent Power", "VA", "apparent_power", "mdi:transmission-tower", "");
@@ -172,7 +203,6 @@ void publish_all_states()
   client.publish(state_topic, buffer, true);
   client.publish(availability_topic, "online", true);
   client.loop();
-  vTaskDelay(100);
   // Serial.print("Published Data: ");
   // Serial.println(buffer);
 }

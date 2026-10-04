@@ -1,6 +1,7 @@
 #include "websocket_handler.h"
 
 AsyncWebSocket ws("/ws");
+SemaphoreHandle_t telemetryMutex = nullptr;
 unsigned long lastTimeMonitor = 0;
 unsigned long lastPingTime = 0;
 unsigned long MonitorDelay = 3000;
@@ -11,6 +12,9 @@ String wsControll;
 
 String wsAllDataBase64()
 {
+    if (telemetryMutex)
+        xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
+
     JsonDocument doc;
 
     ///////////////////////Serial Sent////////////////////////////
@@ -19,7 +23,21 @@ String wsAllDataBase64()
     doc["controll"] = wsControll;
 
     ///////////////////////DIVICE_IP////////////////////////////
-    doc["DIVICE_IP"] = DIVICE_IP;
+    // --- Network / Wi-Fi status ---
+    doc["DIVICE_IP"] = WiFi.localIP().toString();
+    doc["MAC Address"] = WiFi.macAddress();
+    doc["WiFi Signal"] = WiFi.RSSI();
+
+    time_t nowSec;
+    time(&nowSec);
+    if (nowSec > 1577836800)
+    {
+        time_t bootTime = nowSec - (millis() / 1000);
+        char uptimeStr[25];
+        struct tm *timeinfo = gmtime(&bootTime);
+        strftime(uptimeStr, sizeof(uptimeStr), "%Y-%m-%dT%H:%M:%SZ", timeinfo);
+        doc["Uptime"] = uptimeStr;
+    }
 
     ///////////////////////Monotor////////////////////////////////
     doc["Load Percent"] = inv.data.loadPercent;
@@ -46,6 +64,13 @@ String wsAllDataBase64()
     doc["Grid Frequency"] = inv.data.gridFrequency;
     doc["Bus Voltage"] = inv.data.busVoltage;
     doc["Battery Voltage"] = inv.data.batteryVoltage;
+    doc["Battery Power"] = inv.data.batteryPower;
+    doc["Battery Charge Current"] = inv.data.batteryChargeCurrent;
+    doc["Battery Discharge Current"] = inv.data.batteryDischargeCurrent;
+    doc["Battery SOC"] = inv.data.batterySOC;
+    doc["Battery SCC Voltage"] = inv.data.batterySccVoltage;
+    doc["Battery Direction"] = inv.data.batteryDirection;
+    doc["Battery Status Bits"] = inv.data.batteryStatusBits;
     doc["Temperature"] = inv.data.temp;
     doc["Inverter Status"] = inv.data.InverterStatus;
 
@@ -84,7 +109,12 @@ String wsAllDataBase64()
     /////////////////////////////////////////////////////////////////////////
     char jsonBuffer[2304];
     size_t len = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
-    return base64::encode((const uint8_t *)jsonBuffer, len);
+    String encoded = base64::encode((const uint8_t *)jsonBuffer, len);
+
+    if (telemetryMutex)
+        xSemaphoreGive(telemetryMutex);
+
+    return encoded;
 }
 
 void wsClear()
@@ -106,6 +136,13 @@ void wsClear()
     doc["Grid Frequency"] = "";
     doc["Bus Voltage"] = "";
     doc["Battery Voltage"] = "";
+    doc["Battery Power"] = "";
+    doc["Battery Charge Current"] = "";
+    doc["Battery Discharge Current"] = "";
+    doc["Battery SOC"] = "";
+    doc["Battery SCC Voltage"] = "";
+    doc["Battery Direction"] = "";
+    doc["Battery Status Bits"] = "";
     doc["Temperature"] = "";
     doc["Inverter Status"] = "";
 
@@ -178,44 +215,73 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 
 void ws_init()
 {
+    if (!telemetryMutex)
+        telemetryMutex = xSemaphoreCreateMutex();
+
     ws.onEvent(onEvent);
     server.addHandler(&ws);
 }
 
 void wsJsonSerial(const String &msg)
 {
+    if (telemetryMutex)
+        xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
     wsSerial = msg;
-    if (!wsSerial.isEmpty())
+    const bool shouldSend = !wsSerial.isEmpty();
+    if (telemetryMutex)
+        xSemaphoreGive(telemetryMutex);
+
+    if (shouldSend)
     {
         notifyClients(wsAllDataBase64());
+        if (telemetryMutex)
+            xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
         wsSerial = "";
         inv.serialData = "";
-        vTaskDelay(pdMS_TO_TICKS(100)); 
+        if (telemetryMutex)
+            xSemaphoreGive(telemetryMutex);
     }
 }
 
 void wsJsonInverter(const String &msg)
 {
+    if (telemetryMutex)
+        xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
     wsInverter = msg;
-    if (!wsInverter.isEmpty())
+    const bool shouldSend = !wsInverter.isEmpty();
+    if (telemetryMutex)
+        xSemaphoreGive(telemetryMutex);
+
+    if (shouldSend)
     {
         notifyClients(wsAllDataBase64());
+        if (telemetryMutex)
+            xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
         wsInverter = "";
-        vTaskDelay(pdMS_TO_TICKS(100)); 
+        if (telemetryMutex)
+            xSemaphoreGive(telemetryMutex);
     }
 }
 
 void wsJsonControll(const String &msg)
 {
+    if (telemetryMutex)
+        xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
     wsControll = msg;
-    if (!wsControll.isEmpty())
+    const bool shouldSend = !wsControll.isEmpty();
+    if (telemetryMutex)
+        xSemaphoreGive(telemetryMutex);
+
+    if (shouldSend)
     {
         notifyClients(wsAllDataBase64());
+        if (telemetryMutex)
+            xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
         wsControll = "";
-        vTaskDelay(pdMS_TO_TICKS(100)); 
+        if (telemetryMutex)
+            xSemaphoreGive(telemetryMutex);
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 void wsProcess()

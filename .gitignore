@@ -4,3 +4,5 @@ include/
 lib/
 compile_commands.json
 IoT_Solar.code-workspace
+API.txt
+.serena/ 

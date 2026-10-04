@@ -1,4 +1,5 @@
 #include "invHybrid.h"
+#include "websocket_handler.h"
 // ************************  invHybrid class  ************************
 // public:
 
@@ -23,77 +24,73 @@ void invHybrid::executeCommand(String input)
 
 void invHybrid::Response()
 {
-  unsigned long startTime = millis();
-  const unsigned long timeout = 1000; // Timeout 1000ms
+  // Non-blocking response reader. readStringUntil() uses Stream timeout and
+  // can stall the main inverter task for up to 1 second on a lost response.
+  const unsigned long timeout = 1000;
+  const unsigned long startTime = millis();
+  char responseBuffer[256];
+  size_t responseLen = 0;
 
   while (millis() - startTime < timeout)
   {
-    if (Serial2.available() > 0)
+    while (Serial2.available() > 0)
     {
-      invData = Serial2.readStringUntil('\r');
-      invData.trim();
+      const int value = Serial2.read();
+      if (value < 0)
+        break;
 
-      int lastParen = invData.lastIndexOf('(');
-      if (lastParen != -1)
+      const char ch = static_cast<char>(value);
+      if (ch == '\r')
       {
-        invData = invData.substring(lastParen);
+        responseBuffer[responseLen] = '\0';
+        invData = String(responseBuffer);
+        invData.trim();
+
+        const int lastParen = invData.lastIndexOf('(');
+        if (lastParen > 0)
+          invData = invData.substring(lastParen);
+
+        len = invData.length();
+
+        if (invData.startsWith("(") && len > 3)
+        {
+          if (print)
+          {
+            Serial.printf("Inverter respond (%s): %s\n",
+                          lastSentCommand.c_str(), invData.c_str());
+            Serial.printf("len: %u\n", static_cast<unsigned>(len));
+          }
+
+          if (lastSentCommand == "QPIGS")
+            parseQPIGS(invData);
+          else if (lastSentCommand == "QPIRI")
+            parseQPIRI(invData);
+          else if (lastSentCommand == "QPIWS")
+            parseQPIWS(invData);
+
+          lastResponseTime = millis();
+          return;
+        }
+
+        responseLen = 0;
+        continue;
       }
 
-      len = invData.length();
-
-      // ต้องขึ้นต้นด้วย '(' และข้อมูลต้องไม่สั้นเกินไป
-      if (invData.startsWith("(") && len > 3)
-      {
-        Serial.println("Inverter respond (" + lastSentCommand + "): " + invData);
-        Serial.println("len: " + String(len));
-
-        // แยกฟังก์ชัน Parse ตามคำสั่งที่ส่งออกไปล่าสุด
-        if (lastSentCommand == "QPIGS")
-        {
-          parseQPIGS(invData);
-          lastResponseTime = millis();
-          break;
-        }
-        else if (lastSentCommand == "QPIRI")
-        {
-          parseQPIRI(invData);
-          lastResponseTime = millis();
-          break;
-        }
-        else if (lastSentCommand == "QPIWS")
-        {
-          parseQPIWS(invData);
-          lastResponseTime = millis();
-          break;
-        }
-        else if (lastSentCommand == "QFLAG")
-        {
-          // หากมีฟังก์ชัน parseQFLAG(invData); ให้เรียกตรงนี้
-          lastResponseTime = millis();
-          break;
-        }
-        else if (lastSentCommand == "QDI")
-        {
-          // หากมีฟังก์ชัน parseQDI(invData); ให้เรียกตรงนี้
-          lastResponseTime = millis();
-          break;
-        }
-        else if (lastSentCommand == "QMOD")
-        {
-          // หากมีฟังก์ชัน parseQMOD(invData); ให้เรียกตรงนี้
-          lastResponseTime = millis();
-          break;
-        }
-      }
+      if (responseLen < sizeof(responseBuffer) - 1)
+        responseBuffer[responseLen++] = ch;
+      else
+        responseLen = 0;
     }
-    vTaskDelay(pdMS_TO_TICKS(10));
+
+    vTaskDelay(pdMS_TO_TICKS(5));
   }
 
-  // ล้าง Buffer ที่เหลือทิ้งหลังอ่านเสร็จ
+  // Discard incomplete/stale bytes without blocking the task.
   while (Serial2.available() > 0)
-  {
     Serial2.read();
-  }
+
+  invData = "";
+  len = 0;
 }
 
 uint16_t invHybrid::modbusCRC(const uint8_t *buf, uint16_t len)
@@ -380,6 +377,9 @@ void invHybrid::sendCommand(String data)
 
 void invHybrid::parseQPIGS(String response)
 {
+  if (telemetryMutex)
+    xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
+
   if (response.startsWith("("))
   {
     response = response.substring(1, response.length() - 1); // Remove parentheses
@@ -400,14 +400,17 @@ void invHybrid::parseQPIGS(String response)
       case 6:  data.loadPercent = strtoul(token, NULL, 10); break;
       case 7:  data.busVoltage = strtoul(token, NULL, 10); break;
       case 8:  data.batteryVoltage = atof(token); break;
-      case 9:  data.unknow9 = strtoul(token, NULL, 10); break;
-      case 10: data.unknow10 = strtoul(token, NULL, 10); break;
+      case 9:  data.batteryChargeCurrent = atof(token); break;
+      case 10: data.batterySOC = atof(token); break;
       case 11: data.temp = strtoul(token, NULL, 10); break;
       case 12: data.pvCurrent = atof(token); break;
       case 13: data.pvVoltage = atof(token); break;
-      case 14: data.unknow14 = atof(token); break;
-      case 15: data.unknow15 = strtoul(token, NULL, 10); break;
-      case 16: data.InverterStatus = strtoul(token, NULL, 10); break;
+      case 14: data.batterySccVoltage = atof(token); break;
+      case 15: data.batteryDischargeCurrent = atof(token); break;
+      case 16:
+        data.InverterStatus = strtoul(token, NULL, 10);
+        data.batteryStatusBits = String(token);
+        break;
       case 17: data.unknow17 = strtoul(token, NULL, 10); break;
       case 18: data.unknow18 = strtoul(token, NULL, 10); break;
       case 19: data.unknow19 = strtoul(token, NULL, 10); break;
@@ -444,6 +447,33 @@ void invHybrid::parseQPIGS(String response)
   // 4. คำนวณ กำลังไฟ Grid (Watt) -> รองรับทศนิยม และ ติดลบได้
   data.gridPower = (float)data.ActivePower - data.pvPower;
   data.gridPower = roundf(data.gridPower * 10.0f) / 10.0f; // ทศนิยม 1 ตำแหน่ง
+
+  // 5. Battery power and direction.
+  // Positive = charging, negative = discharging.
+  const float chargeCurrent = max(0.0f, data.batteryChargeCurrent);
+  const float dischargeCurrent = max(0.0f, data.batteryDischargeCurrent);
+  data.batteryPower = data.batteryVoltage * (chargeCurrent - dischargeCurrent);
+
+  if (fabsf(data.batteryPower) < 5.0f) data.batteryPower = 0.0f;
+  data.batteryPower = roundf(data.batteryPower * 10.0f) / 10.0f;
+
+  if (data.batteryPower > 0.0f) {
+    data.batteryDirection = "charging";
+  } else if (data.batteryPower < 0.0f) {
+    data.batteryDirection = "discharging";
+  } else {
+    bool chargingFlag = false;
+    if (data.batteryStatusBits.length() >= 8) {
+      chargingFlag =
+          data.batteryStatusBits.charAt(5) == '1' ||
+          data.batteryStatusBits.charAt(6) == '1' ||
+          data.batteryStatusBits.charAt(7) == '1';
+    }
+    data.batteryDirection = chargingFlag ? "charging" : "idle";
+  }
+
+  if (telemetryMutex)
+    xSemaphoreGive(telemetryMutex);
 }
 
 void invHybrid::parseQPIRI(String response)
@@ -552,11 +582,16 @@ void invHybrid::parseQPIRI(String response)
 
 void invHybrid::parseQPIWS(const String &resp)
 {
+  if (telemetryMutex)
+    xSemaphoreTake(telemetryMutex, pdMS_TO_TICKS(50));
+
   if (resp.length() < 34)
   {
     faultList = "Invalid QPIWS";
     Serial.println("QPIWS too short: " + resp);
     Serial.println("faultList: " + faultList);
+    if (telemetryMutex)
+      xSemaphoreGive(telemetryMutex);
     return;
   }
   // ดึงเฉพาะ 32 บิต (index 1 ถึง 32)
@@ -578,6 +613,8 @@ void invHybrid::parseQPIWS(const String &resp)
   // Serial print เพื่อตรวจสอบ
   Serial.println("QPIWS Response: " + resp);
   Serial.println("Parsed Fault List: " + faultList);
+  if (telemetryMutex)
+    xSemaphoreGive(telemetryMutex);
 }
 
 void invHybrid::sentinv(String data)

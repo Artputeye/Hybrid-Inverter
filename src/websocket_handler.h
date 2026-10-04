@@ -1,6 +1,10 @@
 #ifndef WEBSOCKET_HANDLER_H
 #define WEBSOCKET_HANDLER_H
+
 #include "config.h"
+#include <freertos/semphr.h>
+
+extern SemaphoreHandle_t telemetryMutex;
 
 
 String wsAllDataBase64();

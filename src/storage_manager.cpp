@@ -180,6 +180,8 @@ bool saveWifiModeSetting()
     loadJsonFile("/networkconfig.json", doc);
 
     doc["wifi_mode"] = isWifiApMode;
+    doc["device_name"] = DEVICE_NAME;
+    doc["hostname"] = HOSTNAME;
 
     return saveJsonFile("/networkconfig.json", doc);
 }

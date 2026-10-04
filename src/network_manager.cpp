@@ -33,16 +33,7 @@ void apModeCheck()
 
 void network_setup()
 {
-    if (!LittleFS.begin(true))
-    {
-        Serial.println(F("❌ LittleFS Mount Failed"));
-    }
-    else
-    {
-        Serial.println(F("✅ LittleFS Mounted"));
-    }
-    delay(500);
-
+    // LittleFS is mounted once in setup(); do not remount it here.
     WiFi.onEvent(WiFiEvent);
     readNetworkConfig();
     if (isWifiApMode == 1)
@@ -113,12 +104,6 @@ void readNetworkConfig()
 {
     Serial.println(F("\n--- [FS] Starting Network Config Load ---"));
 
-    if (!LittleFS.begin(false))
-    {
-        Serial.println(F("❌ FS Error: LittleFS not mounted. Check setup()!"));
-        return;
-    }
-
     if (!LittleFS.exists("/networkconfig.json"))
     {
         Serial.println(F("❌ FS Error: /networkconfig.json NOT FOUND on Flash"));
@@ -158,6 +143,8 @@ void readNetworkConfig()
 
     strlcpy(WIFI_SSID, doc["wifi_ssid"] | "NONE", sizeof(WIFI_SSID));
     strlcpy(WIFI_PASS, doc["wifi_pass"] | "", sizeof(WIFI_PASS));
+    strlcpy(DEVICE_NAME, doc["device_name"] | DEVICE_NAME, sizeof(DEVICE_NAME));
+    strlcpy(HOSTNAME, doc["hostname"] | HOSTNAME, sizeof(HOSTNAME));
     strlcpy(MAC_RECEIVE, doc["mac_receive"] | "", sizeof(MAC_RECEIVE));
 
     strlcpy(IP_ADDR, doc["ip_address"] | "", sizeof(IP_ADDR));
@@ -244,6 +231,7 @@ void setupWiFiMode()
         ledMode = LED_DISCONNECTED;
         WiFi.mode(WIFI_STA);
         WiFi.setSleep(false);
+        WiFi.setHostname(HOSTNAME);
         WiFi.begin(WIFI_SSID, WIFI_PASS);
         mac_config();
     }

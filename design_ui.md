@@ -153,4 +153,40 @@
     # ถ้ามีการแก้ไข css ให้ดูส่วนอื่นด้วยว่ากระทบกับ ui ในส่วนอื่นหรือไม่ ให้รักษา ui ไว้ด้วย
     # ถ้ามีการแก้ไข javascript ให้ดูส่วนอื่นด้วยว่ากระทบกันทำให้ส่วนอื่นทำงานไม่ได้
     # ปรับลำดับหมวดหมู่ให้ตรงกันทั้ง html css javascript 
+    # หน่วยแต่ละเทียอยากแก้ไขได้เช่น Rate Tier1 200 แก้เป็น 300 เผื่อรัฐบาลมีการเปลี่ยนแปลงหน่วยในอนาคต
 
+15. # ปรับกราฟ ENERGY HISTORY ให้เป็นกราฟแท่ง
+    # เชื่อมโยงกราฟ ENERGY HISTORY กับ energy_tracker.cpp
+    # ปรับลำดับหมวดหมู่ให้ตรงกันทั้ง html css javascript 
+    # แยก code ให้เป็นหมวดหมู่ และใส่คอมเม้นของแต่ล่ะหัวข้อให้ง่ายต่อการแก้ไข
+
+16. # class="status-item" ใส่ lamp status ให้เหมือนตัวอื่น 
+    # ให้เช็คถ้าค่าผิดปกติสีแดง เตือนเป็นสีส้ม
+    # แยก code ให้เป็นหมวดหมู่ และใส่คอมเม้นของแต่ล่ะหัวข้อให้ง่ายต่อการแก้ไข
+
+17. # ปรับ class="load-output-section" แก้ไข active power เป็น rate power โดยดึงค่าจาก websocket "Output Rating Active Power" แล้วใช้ในการกำหนดค่าสูงสุดของ cricle bar ของ load percent
+    # แยก code ให้เป็นหมวดหมู่ และใส่คอมเม้นของแต่ล่ะหัวข้อให้ง่ายต่อการแก้ไข
+
+18. # ปรับปรุง Load Performance
+        ถ้าโหลดมากกว่า 49% ให้เ circle bar ป็นสีส้ม
+        ถ้าโหลดมากกว่า 74% ให้ circle bar เป็นสีแดง
+    # ปรับปรุง Output Performance ถ้าปกติให้ ให้แถบแนวตั้ง เป็นสีเขียว 
+        Active Power ให้อ้างอิง load performance ถ้าโหลดมากกว่า 49% ให้แถบแนวตั้ง ป็นสีส้ม ถ้าโหลดมากกว่า 74% ให้ให้แถบแนวตั้ง เป็นสีแดง
+
+        Apparent Power ให้อ้างอิง load performance ถ้าโหลดมากกว่า 49% ให้แถบแนวตั้ง ป็นสีส้ม ถ้าโหลดมากกว่า 74% ให้ให้แถบแนวตั้ง เป็นสีแดง
+
+        Output Voltage ถ้าแรงดัน มากว่า 240 ให้ให้แถบแนวตั้ง สีส้ม/มากกว่า 245 ให้ให้แถบแนวตั้ง สีแเดง //ถ้าแรงดันต่ำกว่า 215 ให้ให้แถบแนวตั้ง สีส้ม
+
+        Output Current ห้อ้างอิง load performance ถ้าโหลดมากกว่า 49% ให้แถบแนวตั้ง ป็นสีส้ม ถ้าโหลดมากกว่า 74% ให้ให้แถบแนวตั้ง เป็นสีแดง
+
+        Output Frequency ถ้าความถี่ +-1 ให้แถบแนวตั้ง ป็นสีส้ม ถ้าความถี่ +-2 ให้ให้แถบแนวตั้ง เป็นสีแดง
+
+        Power Factor ถ้า pf ต่ำกว่า 0.85 ให้แถบแนวตั้ง สีส้ม ถ้า pf ต่ำกว่า 0.5 ให้แถบแนวตั้ง สีสีแดง
+    # แยก code ให้เป็นหมวดหมู่ และใส่คอมเม้นของแต่ล่ะหัวข้อให้ง่ายต่อการแก้ไข
+
+19. # เชื่อมโยง faultList ใน invHybrid.cpp ผ่าน websocket ไปยังหน้า class="status-item" dashboard.html และ class="status-item" dashboard.htmlใน state.html
+    # class="status-item" dashboard.html class="status-item" state.html ให้ map แสดงเป็นตัวหนังสือที่อยู่ใน faltlist เลย ถ้าตัวไหนไม่มีให้ขึ้น N/A ถ้า fault = "Normal" ไม่ต้องทำอะไร  "N/A" หมายถึง map แล้วไม่มีค่าตรงกัน
+
+20. # เพิ่ม device name และ host name บนแถบ Wi-Fi mode ในหน้า network.html บันทึกใน nework.json และนำไปช้ในตัวแปร DEVICE_NAME และ HOSTNAME ใน config.cpp
+
+21. # ถ้าในโหมด ST เพิ่ม block สำหรับแสดง IP Address MAC Address Uptime WiFi Signal ในหน้า network.html ที่ส่งผ่าน websocket

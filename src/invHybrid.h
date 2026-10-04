@@ -80,24 +80,27 @@ public:
     uint32_t loadPercent;
     uint32_t busVoltage;
     float batteryVoltage;
-    uint32_t unknow9;
-    uint32_t unknow10;
+    float batteryChargeCurrent;
+    float batterySOC;
     uint32_t temp;
     float pvCurrent;
     float pvVoltage;
-    float unknow14;
-    uint32_t unknow15;
+    float batterySccVoltage;
+    float batteryDischargeCurrent;
     uint32_t InverterStatus;
     uint32_t unknow17;
     uint32_t unknow18;
     uint32_t unknow19;
     uint32_t unknow20;
+    String batteryStatusBits;
+    String batteryDirection;
 
     // 🔴 เปลี่ยนชนิดตัวแปรตรงนี้เป็น float เพื่อรองรับทศนิยมและค่าติดลบ
     float outputCurrent;
     float powerFactor;
     float pvPower;
     float gridPower;
+    float batteryPower;
   } data;
 
   struct QPIRIvals_t // Device Rating Information inquiry

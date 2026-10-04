@@ -71,14 +71,23 @@ function setStatusValueState(valueId, lampId, state) {
   1. Live energy flow
   -------------------------------------------------------------------------- */
 function updateLiveEnergyFlow(values) {
-  const { pvRaw, activeRaw, gridRaw, batteryVoltage } = values;
+  const { pvRaw, activeRaw, gridRaw, batteryVoltage, batteryPower, batteryDirection } = values;
 
   setPower("solarFlowValue", "solarFlowUnit", pvRaw);
   setPower("loadFlowValue", "loadFlowUnit", activeRaw);
   setPower("gridFlowValue", "gridFlowUnit", gridRaw);
   if (gridRaw !== null) setGridFlowValue(gridRaw);
-  setText("batteryFlowValue", batteryVoltage === null ? "--" : batteryVoltage.toFixed(1));
-  setText("batteryFlowUnit", "V");
+  setPower("batteryFlowValue", "batteryFlowUnit", batteryPower);
+
+  const directionLabels = { charging: "Charging", discharging: "Discharging", idle: "Idle" };
+  const directionElement = document.getElementById("batteryFlowDirection");
+  setText("batteryFlowDirection", directionLabels[batteryDirection] || "--");
+  if (directionElement) {
+    directionElement.classList.remove("charging", "discharging", "idle");
+    directionElement.classList.add(directionLabels[batteryDirection] ? batteryDirection : "idle");
+  }
+
+  setText("batteryFlowVoltage", batteryVoltage === null ? "-- V" : `${batteryVoltage.toFixed(1)} V`);
 }
 
 /* --------------------------------------------------------------------------
@@ -294,13 +303,15 @@ function applyTelemetry(data) {
   const gridRaw = numberValue(data["Grid Power"]);
   const activeRaw = numberValue(data["Output Active Power"]);
   const batteryVoltage = numberValue(data["Battery Voltage"]);
+  const batteryPower = numberValue(data["Battery Power"]);
+  const batteryDirection = String(data["Battery Direction"] ?? "").toLowerCase();
   const temperature = numberValue(data.Temperature);
   const gridDaily = numberValue(data.energy_kWh ?? data["Energy Daily"]);
   const gridMonthly = numberValue(data.energy_m_kWh);
   const solarDaily = numberValue(data.solar_kWh);
   const solarMonthly = numberValue(data.solar_m_kWh);
 
-  const values = { pvRaw, gridRaw, activeRaw, batteryVoltage, temperature, gridDaily, gridMonthly, solarDaily, solarMonthly };
+  const values = { pvRaw, gridRaw, activeRaw, batteryVoltage, batteryPower, batteryDirection, temperature, gridDaily, gridMonthly, solarDaily, solarMonthly };
   updateLiveEnergyFlow(values);
   updateEnergySummary(values);
   updateLoadAndOutput(data, values);

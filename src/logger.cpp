@@ -6,13 +6,9 @@
 
 // ฟังก์ชันสำหรับบันทึก Log ลง LittleFS
 void writeLog(const String &level, const String &message) {
-    // 1. ตรวจสอบว่า LittleFS พร้อมใช้งานไหม
-    if (!LittleFS.begin(true)) {
-        Serial.println(F("[Logger] LittleFS not ready, can't write log."));
-        return;
-    }
+    // LittleFS is mounted once during boot before logging starts.
 
-    // 2. เช็คขนาดไฟล์ปัจจุบัน หากใหญ่เกินไปให้ลบสร้างใหม่ (ป้องกันไฟล์โตจนเต็ม)
+    // 1. เช็คขนาดไฟล์ปัจจุบัน หากใหญ่เกินไปให้ลบสร้างใหม่ (ป้องกันไฟล์โตจนเต็ม)
     if (LittleFS.exists(LOG_FILE_PATH)) {
         File checkFile = LittleFS.open(LOG_FILE_PATH, "r");
         if (checkFile && checkFile.size() > MAX_LOG_SIZE_BYTES) {
@@ -64,6 +60,10 @@ void displayLogs() {
 void checkAndLogResetReason() {
     RESET_REASON reason_core0 = rtc_get_reset_reason(0);
     RESET_REASON reason_core1 = rtc_get_reset_reason(1);
+
+    Serial.printf("[RESET] Core0=%d Core1=%d FreeHeap=%u MinHeap=%u\n",
+                  reason_core0, reason_core1,
+                  ESP.getFreeHeap(), ESP.getMinFreeHeap());
 
     // หากพบการรีสตาร์ทจาก Watchdog (ทั้งระบบหรือรายตัว CPU)
     if (reason_core0 == RTCWDT_RTC_RESET || reason_core0 == TGWDT_CPU_RESET || 

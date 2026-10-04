@@ -26,6 +26,7 @@ const float GRID_OFF_THRESHOLD = 1.0;
 //////////////////////////////////////////////////////////////////////////////////
 unsigned long lastQvalue = 0;
 unsigned long lastQrate = 0;
+unsigned long lastQfault = 0;
 
 unsigned long lastFile = 0;
 unsigned long lastGridOpr = 0;
@@ -34,6 +35,7 @@ unsigned long lastEnergy = 0;
 /////////////////////////////////////////////////////////////////////////////////
 const unsigned long qvalInterval = 3000;
 const unsigned long qrateInterval = 19000;
+const unsigned long qfaultInterval = 10000;
 
 const unsigned long fileInterval = 15 * 60 * 1000; // record to file every 15 minutes
 const unsigned long gridOprInterval = 1000;
@@ -118,7 +120,6 @@ void gridRun()
             wsJsonSerial("Sent to inv: QPIGS");
             inv.Response(); // เรียก Response ทันทีหลังจาก sendCommand
             wsJsonInverter(inv.invData);
-            wsJsonInverter(String(inv.invData.length()));
         }
     }
 
@@ -133,7 +134,18 @@ void gridRun()
             wsJsonSerial("Sent to inv: QPIRI");
             inv.Response();
             wsJsonInverter(inv.invData);
-            wsJsonInverter(String(inv.invData.length()));
+        }
+    }
+
+    // Keep the shared WebSocket fault field fresh for every connected page.
+    if ((millis() - lastQfault) > qfaultInterval)
+    {
+        lastQfault = millis();
+        if (inv.RunMode)
+        {
+            inv.sendCommand("QPIWS");
+            inv.Response();
+            wsJsonInverter(inv.invData);
         }
     }
 }
@@ -237,9 +249,10 @@ void gridOperation()
         solar_m_kWh += pvEnergyDelta;
     }
 
+    addEnergyHistory(gridEnergyDelta, pvEnergyDelta);
+
     updateExpenseTotals();
     updateSelfSufficiency();
-    updateEnergyHistory();
 
     if (millis() - lastGridOpr > gridOprInterval) // debug grid operation
     {
@@ -276,10 +289,16 @@ void gridOperation()
 
         if (rtc.day >= gridCutOff && rtc.day <= gridStart)
         {
-            inv.valueToinv("GridTieOperation", 0);
-            Serial.println("🔴 Grid OFF (within cut-off period)");
-            wsJsonControll("Grid OFF (within cut-off period)");
-            Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
+            // Only write to the inverter when the state actually changes.
+            // Re-sending this Modbus command every minute is unnecessary and
+            // can collide with the periodic QPIGS/QPIRI/QPIWS traffic.
+            if (gridState)
+            {
+                inv.valueToinv("GridTieOperation", 0);
+                gridState = false;
+                Serial.println("🔴 Grid OFF (within cut-off period)");
+                wsJsonControll("Grid OFF (within cut-off period)");
+            }
             return;
         }
         else
@@ -291,25 +310,23 @@ void gridOperation()
         {
             if (energy_kWh < GRID_OFF_THRESHOLD)
             {
-                inv.valueToinv("GridTieOperation", 0);
-                gridState = false;
-                Serial.println("🔴 Grid OFF (energy < 1.0 kWh)");
-                wsJsonControll("Grid OFF (energy < 1.0 kWh)");
+                if (gridState)
+                {
+                    inv.valueToinv("GridTieOperation", 0);
+                    gridState = false;
+                    Serial.println("🔴 Grid OFF (energy < 1.0 kWh)");
+                    wsJsonControll("Grid OFF (energy < 1.0 kWh)");
+                }
             }
             else if (energy_kWh > GRID_ON_THRESHOLD)
             {
-                inv.valueToinv("GridTieOperation", 1);
-                gridState = true;
-                Serial.println("🟢 Grid ON (energy > 2.0 kWh)");
-                wsJsonControll("Grid ON (energy > 2.0 kWh)");
-            }
-            else
-            {
-                inv.valueToinv("GridTieOperation", gridState ? 1 : 0);
-                Serial.printf("⚙️ Confirming Grid %s (energy = %.3f)\n",
-                              gridState ? "ON" : "OFF", energy_kWh);
-                wsJsonControll(String("⚙️ Confirming Grid ") + (gridState ? "ON" : "OFF") +
-                               String(" (energy = ") + String(energy_kWh, 3) + String(" kWh)"));
+                if (!gridState)
+                {
+                    inv.valueToinv("GridTieOperation", 1);
+                    gridState = true;
+                    Serial.println("🟢 Grid ON (energy > 2.0 kWh)");
+                    wsJsonControll("Grid ON (energy > 2.0 kWh)");
+                }
             }
         }
     }

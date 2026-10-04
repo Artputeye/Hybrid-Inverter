@@ -62,11 +62,27 @@
         <div class="blockcontent network-content">
           <!-- 3.1 Connection mode toggles -->
           <section class="network-group network-toggle-group" aria-label="Connection modes">
+            <div class="network-field">
+              <label for="device_name">Device name</label>
+              <input class="network-input" type="text" id="device_name" name="device_name" placeholder="Hybrid Inverter"
+                maxlength="27" autocomplete="off" />
+            </div>
+            <div class="network-field">
+              <label for="hostname">Host name</label>
+              <input class="network-input" type="text" id="hostname" name="hostname" placeholder="inverter"
+                maxlength="29" autocomplete="off" />
+            </div>
+       
+          </section>
+
+          <!-- 3.2 Connection mode toggles -->
+          <section class="network-group network-toggle-group" aria-label="Connection modes">
             <div class="network-toggle">
               <div class="network-toggle-label">
                 <span>Wi-Fi mode</span>
                 <strong id="wifi-mode">Access point</strong>
               </div>
+
               <label class="switch" for="wifiModeToggle">
                 <input id="wifiModeToggle" type="checkbox" />
                 <span class="slider"></span>
@@ -85,18 +101,21 @@
             </div>
           </section>
 
-          <!-- 3.2 Wi-Fi credentials -->
+          <!-- 3.3 Wi-Fi credentials -->
           <section class="network-group" aria-labelledby="wifi-settings-title">
             <h3 class="network-group-title" id="wifi-settings-title">Wi-Fi connection</h3>
             <div class="network-field">
               <label for="wifi_ssid">Wi-Fi SSID</label>
-              <input class="network-input" type="text" id="wifi_ssid" name="wifi_ssid" placeholder="Network name" autocomplete="off" />
+              <input class="network-input" type="text" id="wifi_ssid" name="wifi_ssid" placeholder="Network name"
+                autocomplete="off" />
             </div>
             <div class="network-field">
               <label for="wifi_pass">Wi-Fi password</label>
               <div class="network-input-row">
-                <input class="network-input" id="wifi_pass" type="password" placeholder="Password" autocomplete="new-password" />
-                <button class="password-toggle" type="button" data-target="wifi_pass" aria-pressed="false" aria-label="Show Wi-Fi password" title="Show password">
+                <input class="network-input" id="wifi_pass" type="password" placeholder="Password"
+                  autocomplete="new-password" />
+                <button class="password-toggle" type="button" data-target="wifi_pass" aria-pressed="false"
+                  aria-label="Show Wi-Fi password" title="Show password">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
@@ -106,35 +125,41 @@
             </div>
           </section>
 
-          <!-- 3.3 Static IP configuration -->
+          <!-- 3.4 Static IP configuration -->
           <section class="network-group" id="ip-hide" aria-labelledby="static-ip-title" hidden>
             <h3 class="network-group-title" id="static-ip-title">Static IP</h3>
             <div class="network-field">
               <label for="ip_address">IP address</label>
-              <input class="network-input" type="text" id="ip_address" name="ip_address" placeholder="192.168.1.9" inputmode="decimal" />
+              <input class="network-input" type="text" id="ip_address" name="ip_address" placeholder="192.168.1.9"
+                inputmode="decimal" />
             </div>
             <div class="network-field">
               <label for="subnet_mask">Subnet mask</label>
-              <input class="network-input" type="text" id="subnet_mask" name="subnet_mask" placeholder="255.255.255.0" inputmode="decimal" />
+              <input class="network-input" type="text" id="subnet_mask" name="subnet_mask" placeholder="255.255.255.0"
+                inputmode="decimal" />
             </div>
             <div class="network-field">
               <label for="default_gateway">Gateway</label>
-              <input class="network-input" type="text" id="default_gateway" name="default_gateway" placeholder="192.168.1.1" inputmode="decimal" />
+              <input class="network-input" type="text" id="default_gateway" name="default_gateway"
+                placeholder="192.168.1.1" inputmode="decimal" />
             </div>
           </section>
 
-          <!-- 3.4 MQTT connection -->
+          <!-- 3.5  MQTT connection -->
           <section class="network-group" aria-labelledby="mqtt-settings-title">
             <h3 class="network-group-title" id="mqtt-settings-title">MQTT connection</h3>
             <div class="network-field">
               <label for="mqtt_user">MQTT user</label>
-              <input class="network-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="Username" autocomplete="username" />
+              <input class="network-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="Username"
+                autocomplete="username" />
             </div>
             <div class="network-field">
               <label for="mqtt_pass">MQTT password</label>
               <div class="network-input-row">
-                <input class="network-input" id="mqtt_pass" type="password" placeholder="Password" autocomplete="new-password" />
-                <button class="password-toggle" type="button" data-target="mqtt_pass" aria-pressed="false" aria-label="Show MQTT password" title="Show password">
+                <input class="network-input" id="mqtt_pass" type="password" placeholder="Password"
+                  autocomplete="new-password" />
+                <button class="password-toggle" type="button" data-target="mqtt_pass" aria-pressed="false"
+                  aria-label="Show MQTT password" title="Show password">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
@@ -144,24 +169,39 @@
             </div>
             <div class="network-field">
               <label for="mqtt_server">MQTT server</label>
-              <input class="network-input" type="text" id="mqtt_server" name="mqtt_server" placeholder="192.168.1.247" />
+              <input class="network-input" type="text" id="mqtt_server" name="mqtt_server"
+                placeholder="192.168.1.247" />
             </div>
             <div class="network-field">
               <label for="mqtt_port">MQTT port</label>
-              <input class="network-input" type="number" id="mqtt_port" name="mqtt_port" placeholder="1883" inputmode="numeric" />
+              <input class="network-input" type="number" id="mqtt_port" name="mqtt_port" placeholder="1883"
+                inputmode="numeric" />
             </div>
           </section>
 
-          <!-- 3.5 Save configuration -->
+          <!-- 3.6 Live Station status -->
+          <section class="network-group" id="station-status" aria-labelledby="station-status-title" hidden>
+            <h3 class="network-group-title" id="station-status-title">Station status</h3>
+            <div class="network-field"><label>IP Address</label><strong class="network-status-value"
+                id="ws-ip-address">--</strong></div>
+            <div class="network-field"><label>MAC Address</label><strong class="network-status-value"
+                id="ws-mac-address">--</strong></div>
+            <div class="network-field"><label>Uptime</label><strong class="network-status-value"
+                id="ws-uptime">--</strong></div>
+            <div class="network-field"><label>WiFi Signal</label><strong class="network-status-value"
+                id="ws-wifi-signal">--</strong></div>
+          </section>
+
+          <!-- 3.7 Save configuration -->
           <div class="network-actions">
             <button class="network-save" id="save-network-config" type="button">Save</button>
           </div>
+
         </div>
       </section>
     </main>
   </div>
 
-  <script src="info.js"></script>
   <script src="network.js"></script>
 </body>
 
